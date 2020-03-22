@@ -1,0 +1,6 @@
+#!/usr/bin/env pip3 install -r
+
+# Types Library
+
+# Requests
+requests
