@@ -1,5 +1,6 @@
 
 import datetime
+import json
 import unittest
 
 from colf import Colfer
@@ -60,3 +61,11 @@ class TestBasicTypes(unittest.TestCase, ExampleMixin):
 
         with self.assertRaises(NotImplementedError) as _:
             del testObject['a']
+
+    def testStr(self):
+        marshallableObject = self.getExampleObject()
+        print(marshallableObject)
+
+    def testJson(self):
+        marshallableObject = self.getExampleObject()
+        print(json.dumps(marshallableObject, default=str))
