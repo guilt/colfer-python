@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
-from collections import OrderedDict
-import six
 import sys
+from collections import OrderedDict
+
+import six
 
 if sys.version_info[0:2] >= (3, 8):
     long = int
+
 
 class TypeCheckMixin(object):
     def __isType(self, variable, typesToCheck):
@@ -165,7 +167,137 @@ class TypeCheckMixin(object):
             return functionToCall(self, variable)
         return False
 
+
 class ColferMarshallerMixin(object):
+
+    def marshallBool(self, name, variableValue, byteOutput, offset):
+        return offset
+
+    def marshallInt8(self, name, variableValue, byteOutput, offset):
+        return offset
+
+    def marshallUint8(self, name, variableValue, byteOutput, offset):
+        return offset
+
+    def marshallInt16(self, name, variableValue, byteOutput, offset):
+        return offset
+
+    def marshallUint16(self, name, variableValue, byteOutput, offset):
+        return offset
+
+    def marshallInt32(self, name, variableValue, byteOutput, offset):
+        return offset
+
+    def marshallUint32(self, name, variableValue, byteOutput, offset):
+        return offset
+
+    def marshallInt64(self, name, variableValue, byteOutput, offset):
+        return offset
+
+    def marshallUint64(self, name, variableValue, byteOutput, offset):
+        return offset
+
+    def marshallFloat32(self, name, variableValue, byteOutput, offset):
+        return offset
+
+    def marshallFloat64(self, name, variableValue, byteOutput, offset):
+        return offset
+
+    def marshallTimestamp(self, name, variableValue, byteOutput, offset):
+        return offset
+
+    def marshallBinary(self, name, variableValue, byteOutput, offset):
+        return offset
+
+    def marshallString(self, name, variableValue, byteOutput, offset):
+        return offset
+
+    def marshallList(self, name, variableValue, byteOutput, offset):
+        return offset
+
+    def marshallType(self, name, variableType, variableValue, byteOutput, offset):
+        STRING_TYPES_MAP = {
+            'bool': ColferMarshallerMixin.marshallBool,
+            'Bool': ColferMarshallerMixin.marshallBool,
+
+            'boolean': ColferMarshallerMixin.marshallBool,
+            'Boolean': ColferMarshallerMixin.marshallBool,
+
+            'byte': ColferMarshallerMixin.marshallUint8,
+            'Byte': ColferMarshallerMixin.marshallUint8,
+
+            'int8': ColferMarshallerMixin.marshallInt8,
+            'Int8': ColferMarshallerMixin.marshallInt8,
+
+            'uint8': ColferMarshallerMixin.marshallUint8,
+            'Uint8': ColferMarshallerMixin.marshallUint8,
+
+            'int16': ColferMarshallerMixin.marshallInt16,
+            'Int16': ColferMarshallerMixin.marshallInt16,
+
+            'uint16': ColferMarshallerMixin.marshallUint16,
+            'Uint16': ColferMarshallerMixin.marshallUint16,
+
+            'int32': ColferMarshallerMixin.marshallInt32,
+            'Int32': ColferMarshallerMixin.marshallInt32,
+
+            'uint32': ColferMarshallerMixin.marshallUint32,
+            'Uint32': ColferMarshallerMixin.marshallUint32,
+
+            'int64': ColferMarshallerMixin.marshallInt64,
+            'Int64': ColferMarshallerMixin.marshallInt64,
+
+            'uint64': ColferMarshallerMixin.marshallUint64,
+            'Uint64': ColferMarshallerMixin.marshallUint64,
+
+            'float32': ColferMarshallerMixin.marshallFloat32,
+            'Float32': ColferMarshallerMixin.marshallFloat32,
+
+            'float64': ColferMarshallerMixin.marshallFloat64,
+            'Float64': ColferMarshallerMixin.marshallFloat64,
+
+            'timestamp': ColferMarshallerMixin.marshallTimestamp,
+            'Timestamp': ColferMarshallerMixin.marshallTimestamp,
+            'TimeStamp': ColferMarshallerMixin.marshallTimestamp,
+
+            'datetime': ColferMarshallerMixin.marshallTimestamp,
+            'Datetime': ColferMarshallerMixin.marshallTimestamp,
+            'DateTime': ColferMarshallerMixin.marshallTimestamp,
+
+            'str': ColferMarshallerMixin.marshallString,
+            'Str': ColferMarshallerMixin.marshallString,
+
+            'string': ColferMarshallerMixin.marshallString,
+            'String': ColferMarshallerMixin.marshallString,
+
+            'text': ColferMarshallerMixin.marshallString,
+            'Text': ColferMarshallerMixin.marshallString,
+
+            'unicode': ColferMarshallerMixin.marshallString,
+            'Unicode': ColferMarshallerMixin.marshallString,
+
+            'binary': ColferMarshallerMixin.marshallBinary,
+            'Binary': ColferMarshallerMixin.marshallBinary,
+
+            'bytes': ColferMarshallerMixin.marshallBinary,
+            'Bytes': ColferMarshallerMixin.marshallBinary,
+
+            'bytearray': ColferMarshallerMixin.marshallBinary,
+            'Bytearray': ColferMarshallerMixin.marshallBinary,
+            'ByteArray': ColferMarshallerMixin.marshallBinary,
+
+            'list': ColferMarshallerMixin.marshallList,
+            'List': ColferMarshallerMixin.marshallList,
+
+            'tuple': ColferMarshallerMixin.marshallList,
+            'Tuple': ColferMarshallerMixin.marshallList,
+        }
+        if variableType in STRING_TYPES_MAP:
+            functionToCall = STRING_TYPES_MAP[variableType]
+            print('Marshalling: {}:{}={} @{} Invoke: {}'.format(name, variableType, variableValue, offset,
+                                                                functionToCall))
+            return functionToCall(self, name, variableValue, byteOutput, offset)
+        return offset
 
     def marshall(self, byteOutput, offset=0):
         assert (byteOutput != None)
@@ -176,21 +308,138 @@ class ColferMarshallerMixin(object):
             offset = self.marshallType(name, variableType, value, byteOutput, offset)
         return offset
 
-    def marshallBool(self, name, variableValue, byteOutput, offset):
-        if variableValue:
-            byteOutput[offset] = 0
-            offset += 1
-        return offset
-
-    def marshallType(self, name, variableType, variableValue, byteOutput, offset):
-        print('Marshalling: {}:{}={} @{}'.format(name, variableType, variableValue, offset))
-        if variableType == 'bool':
-            offset = self.marshallBool(name, variableValue, byteOutput, offset)
-        return offset
 
 class ColferUnmarshallerMixin(object):
 
-    def unMarshall(self, byteInput, offset=0):
+    def unmarshallBool(self, name, byteInput, offset):
+        return None, offset
+
+    def unmarshallInt8(self, name, byteInput, offset):
+        return None, offset
+
+    def unmarshallUint8(self, name, byteInput, offset):
+        return None, offset
+
+    def unmarshallInt16(self, name, byteInput, offset):
+        return None, offset
+
+    def unmarshallUint16(self, name, byteInput, offset):
+        return None, offset
+
+    def unmarshallInt32(self, name, byteInput, offset):
+        return None, offset
+
+    def unmarshallUint32(self, name, byteInput, offset):
+        return None, offset
+
+    def unmarshallInt64(self, name, byteInput, offset):
+        return None, offset
+
+    def unmarshallUint64(self, name, byteInput, offset):
+        return None, offset
+
+    def unmarshallFloat32(self, name, byteInput, offset):
+        return None, offset
+
+    def unmarshallFloat64(self, name, byteInput, offset):
+        return None, offset
+
+    def unmarshallTimestamp(self, name, byteInput, offset):
+        return None, offset
+
+    def unmarshallBinary(self, name, byteInput, offset):
+        return None, offset
+
+    def unmarshallString(self, name, byteInput, offset):
+        return None, offset
+
+    def unmarshallList(self, name, byteInput, offset):
+        return None, offset
+
+    def unmarshallType(self, name, variableType, byteInput, offset):
+        STRING_TYPES_MAP = {
+            'bool': ColferUnmarshallerMixin.unmarshallBool,
+            'Bool': ColferUnmarshallerMixin.unmarshallBool,
+
+            'boolean': ColferUnmarshallerMixin.unmarshallBool,
+            'Boolean': ColferUnmarshallerMixin.unmarshallBool,
+
+            'byte': ColferUnmarshallerMixin.unmarshallUint8,
+            'Byte': ColferUnmarshallerMixin.unmarshallUint8,
+
+            'int8': ColferUnmarshallerMixin.unmarshallInt8,
+            'Int8': ColferUnmarshallerMixin.unmarshallInt8,
+
+            'uint8': ColferUnmarshallerMixin.unmarshallUint8,
+            'Uint8': ColferUnmarshallerMixin.unmarshallUint8,
+
+            'int16': ColferUnmarshallerMixin.unmarshallInt16,
+            'Int16': ColferUnmarshallerMixin.unmarshallInt16,
+
+            'uint16': ColferUnmarshallerMixin.unmarshallUint16,
+            'Uint16': ColferUnmarshallerMixin.unmarshallUint16,
+
+            'int32': ColferUnmarshallerMixin.unmarshallInt32,
+            'Int32': ColferUnmarshallerMixin.unmarshallInt32,
+
+            'uint32': ColferUnmarshallerMixin.unmarshallUint32,
+            'Uint32': ColferUnmarshallerMixin.unmarshallUint32,
+
+            'int64': ColferUnmarshallerMixin.unmarshallInt64,
+            'Int64': ColferUnmarshallerMixin.unmarshallInt64,
+
+            'uint64': ColferUnmarshallerMixin.unmarshallUint64,
+            'Uint64': ColferUnmarshallerMixin.unmarshallUint64,
+
+            'float32': ColferUnmarshallerMixin.unmarshallFloat32,
+            'Float32': ColferUnmarshallerMixin.unmarshallFloat32,
+
+            'float64': ColferUnmarshallerMixin.unmarshallFloat64,
+            'Float64': ColferUnmarshallerMixin.unmarshallFloat64,
+
+            'timestamp': ColferUnmarshallerMixin.unmarshallTimestamp,
+            'Timestamp': ColferUnmarshallerMixin.unmarshallTimestamp,
+            'TimeStamp': ColferUnmarshallerMixin.unmarshallTimestamp,
+
+            'datetime': ColferUnmarshallerMixin.unmarshallTimestamp,
+            'Datetime': ColferUnmarshallerMixin.unmarshallTimestamp,
+            'DateTime': ColferUnmarshallerMixin.unmarshallTimestamp,
+
+            'str': ColferUnmarshallerMixin.unmarshallString,
+            'Str': ColferUnmarshallerMixin.unmarshallString,
+
+            'string': ColferUnmarshallerMixin.unmarshallString,
+            'String': ColferUnmarshallerMixin.unmarshallString,
+
+            'text': ColferUnmarshallerMixin.unmarshallString,
+            'Text': ColferUnmarshallerMixin.unmarshallString,
+
+            'unicode': ColferUnmarshallerMixin.unmarshallString,
+            'Unicode': ColferUnmarshallerMixin.unmarshallString,
+
+            'binary': ColferUnmarshallerMixin.unmarshallBinary,
+            'Binary': ColferUnmarshallerMixin.unmarshallBinary,
+
+            'bytes': ColferUnmarshallerMixin.unmarshallBinary,
+            'Bytes': ColferUnmarshallerMixin.unmarshallBinary,
+
+            'bytearray': ColferUnmarshallerMixin.unmarshallBinary,
+            'Bytearray': ColferUnmarshallerMixin.unmarshallBinary,
+            'ByteArray': ColferUnmarshallerMixin.unmarshallBinary,
+
+            'list': ColferUnmarshallerMixin.unmarshallList,
+            'List': ColferUnmarshallerMixin.unmarshallList,
+
+            'tuple': ColferUnmarshallerMixin.unmarshallList,
+            'Tuple': ColferUnmarshallerMixin.unmarshallList,
+        }
+        if variableType in STRING_TYPES_MAP:
+            functionToCall = STRING_TYPES_MAP[variableType]
+            print('Unmarshalling: {}:{} @{} Invoke: {}'.format(name, variableType, offset, functionToCall))
+            return functionToCall(self, name, byteInput, offset)
+        return None, offset
+
+    def unmarshall(self, byteInput, offset=0):
         assert (byteInput != None)
         assert (self.isBinary(byteInput))
         assert (offset >= 0)
@@ -199,10 +448,6 @@ class ColferUnmarshallerMixin(object):
             newValue, offset = self.unmarshallType(name, variableType, byteInput, offset)
             self.__dict__['__variables'][name] = [variableType, newValue]
         return self, offset
-
-    def unmarshallType(self, name, variableType, byteInput, offset):
-        print('Unmarshalling: {}:{} @{}'.format(name, variableType, offset))
-        return None, offset
 
 
 class Colfer(dict, TypeCheckMixin, ColferMarshallerMixin, ColferUnmarshallerMixin):
@@ -265,10 +510,3 @@ class Colfer(dict, TypeCheckMixin, ColferMarshallerMixin, ColferUnmarshallerMixi
                 raise AttributeError(
                     'Attribute {} is of type {}. Cannot be assigned to {}'.format(name, variableType, value))
         self.__dict__['__variables'][name] = [variableType, value]
-
-def main():
-    pass
-
-
-if __name__ == '__main__':
-    main()

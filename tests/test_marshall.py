@@ -18,4 +18,4 @@ class TestMarshall(unittest.TestCase, ExampleMixin):
 
     def testUnMarshall(self):
         byteInput = bytearray(200)
-        unmarshalledObject, _ = self.getExampleObject().unMarshall(byteInput)
+        unmarshalledObject, _ = self.getExampleObject().unmarshall(byteInput)

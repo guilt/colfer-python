@@ -2,8 +2,3 @@
 
 # Compatibility Library
 six
-
-# Types Library
-
-# Requests
-requests
