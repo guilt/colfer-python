@@ -72,7 +72,7 @@ class TypeCheckMixin(object):
                and self.__checkRange(variable, -1.7976931348623158e+308, 1.7976931348623158e+308)
 
     def isTimestamp(self, variable):
-        return self.__isType(variable, datetime)
+        return self.__isType(variable, [datetime.datetime])
 
     def isBinary(self, variable, outputCapable=False):
         if outputCapable:
@@ -204,7 +204,7 @@ class TypeDeriveValueMixin(object):
         return 0.0
 
     def getTimestamp(self):
-        return datetime.datetime()
+        return datetime.datetime.utcfromtimestamp(0)
 
     def getBinary(self):
         return b''
@@ -424,7 +424,7 @@ class ColferMarshallerMixin(object):
         }
         if variableType in STRING_TYPES_MAP:
             functionToCall = STRING_TYPES_MAP[variableType]
-            #print('Marshalling: {}:{}={} @{} Invoke: {}'.format(name, variableType, variableValue, offset,
+            # print('Marshalling: {}:{}={} @{} Invoke: {}'.format(name, variableType, variableValue, offset,
             #                                                    functionToCall))
             return functionToCall(self, name, variableValue, byteOutput, offset)
         return offset
@@ -433,10 +433,15 @@ class ColferMarshallerMixin(object):
         assert (byteOutput != None)
         assert (self.isBinary(byteOutput, True))
         assert (offset >= 0)
-        for name in self.__dict__['__variables']:
-            variableType, value = self.__dict__['__variables'][name]
+        for name in dir(self):
+            variableType, value = self.getAttributeWithType(name)
             offset = self.marshallType(name, variableType, value, byteOutput, offset)
         return offset
+
+    def getAttributeWithType(self, name):
+        value = self.__getattr__(name)
+        valueType = str(type(value).__name__)
+        return valueType, value
 
 
 class ColferUnmarshallerMixin(object):
@@ -565,7 +570,7 @@ class ColferUnmarshallerMixin(object):
         }
         if variableType in STRING_TYPES_MAP:
             functionToCall = STRING_TYPES_MAP[variableType]
-            #print('Unmarshalling: {}:{} @{} Invoke: {}'.format(name, variableType, offset, functionToCall))
+            # print('Unmarshalling: {}:{} @{} Invoke: {}'.format(name, variableType, offset, functionToCall))
             return functionToCall(self, name, byteInput, offset)
         return None, offset
 
@@ -573,17 +578,22 @@ class ColferUnmarshallerMixin(object):
         assert (byteInput != None)
         assert (self.isBinary(byteInput))
         assert (offset >= 0)
-        for name in self.__dict__['__variables']:
-            variableType, _ = self.__dict__['__variables'][name]
+        for name in dir(self):
+            variableType, _ = self.getAttributeWithType(name)
             newValue, offset = self.unmarshallType(name, variableType, byteInput, offset)
-            self.setAttributeKnown(name, variableType, newValue)
+            self.setKnownAttribute(name, variableType, newValue)
         return self, offset
 
-    def setAttributeKnown(self, name, variableType, value):
+    def getAttributeWithType(self, name):
+        value = self.__getattr__(name)
+        valueType = str(type(value).__name__)
+        return valueType, value
+
+    def setKnownAttribute(self, name, variableType, value):
         self.__dict__['__variables'][name] = [variableType, value]
 
 
-class Colfer(dict, TypeCheckMixin, TypeDeriveValueMixin, ColferMarshallerMixin, ColferUnmarshallerMixin):
+class DictMixIn(dict):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -605,36 +615,53 @@ class Colfer(dict, TypeCheckMixin, TypeDeriveValueMixin, ColferMarshallerMixin, 
     def items(self):
         return iter((name, value[1]) for name, value in self.__dict__['__variables'].items())
 
+    def setKnownAttribute(self, name, variableType, value):
+        self.__dict__['__variables'][name] = [variableType, value]
+
     def __getitem__(self, name):
         return self.__getattr__(name)
 
     def __setitem__(self, name, value):
         return self.__setattr__(name, value)
 
+    def __delitem__(self, name):
+        del self.__dict__['__variables'][name]
+
     def __getattr__(self, name):
         if not name in self.__dict__['__variables']:
             raise AttributeError('Attribute {} does not exist.'.format(name))
         return self.__dict__['__variables'][name][1]
 
-    def __delitem__(self, name):
-        raise NotImplementedError('Del {} is unimplementable.'.format(name))
+    def getAttribute(self, name):
+        return self.__getattr__(name)
 
-    def setAttributeKnown(self, name, variableType, value):
-        if value is not None:
-            if not self.isType(value, variableType):
-                raise AttributeError(
-                    'Attribute {} is of type {}. Cannot be assigned to {}'.format(name, variableType, value))
-        else:
-            value = self.getValue(variableType)
-        #print('Setting {}:{} to {}'.format(name, variableType, value))
-        self.__dict__['__variables'][name] = [variableType, value]
+    def getAttributeWithType(self, name):
+        return self.__dict__['__variables'][name]
 
     def __setattr__(self, name, value):
         if not name in self.__dict__['__variables']:
             variableType = str(type(value).__name__)
         else:
             variableType = self.__dict__['__variables'][name][0]
-        self.setAttributeKnown(name, variableType, value)
+        self.setKnownAttribute(name, variableType, value)
+
+    def setAttribute(self, name, value):
+        return self.__setattr__(name, value)
+
+
+class Colfer(DictMixIn, TypeCheckMixin, TypeDeriveValueMixin, ColferMarshallerMixin, ColferUnmarshallerMixin):
+
+    def __delitem__(self, name):
+        raise NotImplementedError('Del {} is unimplementable.'.format(name))
+
+    def setKnownAttribute(self, name, variableType, value):
+        if value is not None:
+            if not self.isType(value, variableType):
+                raise AttributeError(
+                    'Attribute {} is of type {}. Cannot be assigned to {}'.format(name, variableType, value))
+        else:
+            value = self.getValue(variableType)
+        super().setKnownAttribute(name, variableType, value)
 
     def declareAttribute(self, name, variableType, value=None):
         if name is None or variableType is None or type(variableType) is not str:

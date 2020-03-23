@@ -1,3 +1,5 @@
+
+import datetime
 import unittest
 
 from colf import Colfer
@@ -26,6 +28,15 @@ class ExampleMixin(object):
         x.f = bytearray('123', encoding='utf8')
 
         x.g = u'123'
+
+        x.h = datetime.datetime.now()
+
+        x.i = [2, 3, 4]
+
+        x.declareAttribute('j', 'float64')
+        x.j = 3.14151617
+
+        x.k = 'Hello World'
 
         return x
 
