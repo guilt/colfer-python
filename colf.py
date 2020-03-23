@@ -298,9 +298,10 @@ class TypeDeriveValueMixin(object):
         return False
 
 
-class ColferMarshallerMixin(object):
+class ColferMarshallerMixin(TypeCheckMixin):
 
     def marshallBool(self, name, variableValue, byteOutput, offset):
+
         return offset
 
     def marshallInt8(self, name, variableValue, byteOutput, offset):
@@ -444,7 +445,7 @@ class ColferMarshallerMixin(object):
         return valueType, value
 
 
-class ColferUnmarshallerMixin(object):
+class ColferUnmarshallerMixin(TypeCheckMixin):
 
     def unmarshallBool(self, name, byteInput, offset):
         return None, offset
@@ -590,7 +591,7 @@ class ColferUnmarshallerMixin(object):
         return valueType, value
 
     def setKnownAttribute(self, name, variableType, value):
-        self.__dict__['__variables'][name] = [variableType, value]
+        self.__setattr__(name, value)
 
 
 class DictMixIn(dict):
@@ -615,9 +616,6 @@ class DictMixIn(dict):
     def items(self):
         return iter((name, value[1]) for name, value in self.__dict__['__variables'].items())
 
-    def setKnownAttribute(self, name, variableType, value):
-        self.__dict__['__variables'][name] = [variableType, value]
-
     def __getitem__(self, name):
         return self.__getattr__(name)
 
@@ -638,6 +636,9 @@ class DictMixIn(dict):
     def getAttributeWithType(self, name):
         return self.__dict__['__variables'][name]
 
+    def setKnownAttribute(self, name, variableType, value):
+        self.__dict__['__variables'][name] = [variableType, value]
+
     def __setattr__(self, name, value):
         if not name in self.__dict__['__variables']:
             variableType = str(type(value).__name__)
@@ -649,7 +650,7 @@ class DictMixIn(dict):
         return self.__setattr__(name, value)
 
 
-class Colfer(DictMixIn, TypeCheckMixin, TypeDeriveValueMixin, ColferMarshallerMixin, ColferUnmarshallerMixin):
+class Colfer(DictMixIn, TypeDeriveValueMixin, ColferMarshallerMixin, ColferUnmarshallerMixin):
 
     def __delitem__(self, name):
         raise NotImplementedError('Del {} is unimplementable.'.format(name))
@@ -666,12 +667,6 @@ class Colfer(DictMixIn, TypeCheckMixin, TypeDeriveValueMixin, ColferMarshallerMi
     def declareAttribute(self, name, variableType, value=None):
         if name is None or variableType is None or type(variableType) is not str:
             raise AttributeError('Must declare a valid attribute and type')
-        if name in self.__dict__['__variables']:
+        if name in dir(self):
             raise AttributeError('Cannot declare attribute {} again'.format(name))
-        if value is not None:
-            if not self.isType(value, variableType):
-                raise AttributeError(
-                    'Attribute {} is of type {}. Cannot be assigned to {}'.format(name, variableType, value))
-        else:
-            value = self.getValue(variableType)
-        self.__dict__['__variables'][name] = [variableType, value]
+        self.setKnownAttribute(name, variableType, value)
