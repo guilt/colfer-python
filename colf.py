@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import datetime
 import sys
 from collections import OrderedDict
 
@@ -71,7 +72,6 @@ class TypeCheckMixin(object):
                and self.__checkRange(variable, -1.7976931348623158e+308, 1.7976931348623158e+308)
 
     def isTimestamp(self, variable):
-        from datetime import datetime
         return self.__isType(variable, datetime)
 
     def isBinary(self, variable, outputCapable=False):
@@ -165,6 +165,136 @@ class TypeCheckMixin(object):
         if variableType in STRING_TYPES_MAP:
             functionToCall = STRING_TYPES_MAP[variableType]
             return functionToCall(self, variable)
+        return False
+
+
+class TypeDeriveValueMixin(object):
+
+    def getBool(self):
+        return False
+
+    def getInt8(self):
+        return 0
+
+    def getUint8(self):
+        return 0
+
+    def getInt16(self):
+        return 0
+
+    def getUint16(self):
+        return 0
+
+    def getInt32(self):
+        return 0
+
+    def getUint32(self):
+        return 0
+
+    def getInt64(self):
+        return 0
+
+    def getUint64(self):
+        return 0
+
+    def getFloat32(self):
+        return 0.0
+
+    def getFloat64(self):
+        return 0.0
+
+    def getTimestamp(self):
+        return datetime.datetime()
+
+    def getBinary(self):
+        return b''
+
+    def getString(self):
+        return ''
+
+    def getList(self):
+        return []
+
+    def getValue(self, variableType):
+        STRING_TYPES_MAP = {
+            'bool': TypeDeriveValueMixin.getBool,
+            'Bool': TypeDeriveValueMixin.getBool,
+
+            'boolean': TypeDeriveValueMixin.getBool,
+            'Boolean': TypeDeriveValueMixin.getBool,
+
+            'byte': TypeDeriveValueMixin.getUint8,
+            'Byte': TypeDeriveValueMixin.getUint8,
+
+            'int8': TypeDeriveValueMixin.getInt8,
+            'Int8': TypeDeriveValueMixin.getInt8,
+
+            'uint8': TypeDeriveValueMixin.getUint8,
+            'Uint8': TypeDeriveValueMixin.getUint8,
+
+            'int16': TypeDeriveValueMixin.getInt16,
+            'Int16': TypeDeriveValueMixin.getInt16,
+
+            'uint16': TypeDeriveValueMixin.getUint16,
+            'Uint16': TypeDeriveValueMixin.getUint16,
+
+            'int32': TypeDeriveValueMixin.getInt32,
+            'Int32': TypeDeriveValueMixin.getInt32,
+
+            'uint32': TypeDeriveValueMixin.getUint32,
+            'Uint32': TypeDeriveValueMixin.getUint32,
+
+            'int64': TypeDeriveValueMixin.getInt64,
+            'Int64': TypeDeriveValueMixin.getInt64,
+
+            'uint64': TypeDeriveValueMixin.getUint64,
+            'Uint64': TypeDeriveValueMixin.getUint64,
+
+            'float32': TypeDeriveValueMixin.getFloat32,
+            'Float32': TypeDeriveValueMixin.getFloat32,
+
+            'float64': TypeDeriveValueMixin.getFloat64,
+            'Float64': TypeDeriveValueMixin.getFloat64,
+
+            'timestamp': TypeDeriveValueMixin.getTimestamp,
+            'Timestamp': TypeDeriveValueMixin.getTimestamp,
+            'TimeStamp': TypeDeriveValueMixin.getTimestamp,
+
+            'datetime': TypeDeriveValueMixin.getTimestamp,
+            'Datetime': TypeDeriveValueMixin.getTimestamp,
+            'DateTime': TypeDeriveValueMixin.getTimestamp,
+
+            'str': TypeDeriveValueMixin.getString,
+            'Str': TypeDeriveValueMixin.getString,
+
+            'string': TypeDeriveValueMixin.getString,
+            'String': TypeDeriveValueMixin.getString,
+
+            'text': TypeDeriveValueMixin.getString,
+            'Text': TypeDeriveValueMixin.getString,
+
+            'unicode': TypeDeriveValueMixin.getString,
+            'Unicode': TypeDeriveValueMixin.getString,
+
+            'binary': TypeDeriveValueMixin.getBinary,
+            'Binary': TypeDeriveValueMixin.getBinary,
+
+            'bytes': TypeDeriveValueMixin.getBinary,
+            'Bytes': TypeDeriveValueMixin.getBinary,
+
+            'bytearray': TypeDeriveValueMixin.getBinary,
+            'Bytearray': TypeDeriveValueMixin.getBinary,
+            'ByteArray': TypeDeriveValueMixin.getBinary,
+
+            'list': TypeDeriveValueMixin.getList,
+            'List': TypeDeriveValueMixin.getList,
+
+            'tuple': TypeDeriveValueMixin.getList,
+            'Tuple': TypeDeriveValueMixin.getList,
+        }
+        if variableType in STRING_TYPES_MAP:
+            functionToCall = STRING_TYPES_MAP[variableType]
+            return functionToCall(self)
         return False
 
 
@@ -294,8 +424,8 @@ class ColferMarshallerMixin(object):
         }
         if variableType in STRING_TYPES_MAP:
             functionToCall = STRING_TYPES_MAP[variableType]
-            print('Marshalling: {}:{}={} @{} Invoke: {}'.format(name, variableType, variableValue, offset,
-                                                                functionToCall))
+            #print('Marshalling: {}:{}={} @{} Invoke: {}'.format(name, variableType, variableValue, offset,
+            #                                                    functionToCall))
             return functionToCall(self, name, variableValue, byteOutput, offset)
         return offset
 
@@ -435,7 +565,7 @@ class ColferUnmarshallerMixin(object):
         }
         if variableType in STRING_TYPES_MAP:
             functionToCall = STRING_TYPES_MAP[variableType]
-            print('Unmarshalling: {}:{} @{} Invoke: {}'.format(name, variableType, offset, functionToCall))
+            #print('Unmarshalling: {}:{} @{} Invoke: {}'.format(name, variableType, offset, functionToCall))
             return functionToCall(self, name, byteInput, offset)
         return None, offset
 
@@ -446,11 +576,14 @@ class ColferUnmarshallerMixin(object):
         for name in self.__dict__['__variables']:
             variableType, _ = self.__dict__['__variables'][name]
             newValue, offset = self.unmarshallType(name, variableType, byteInput, offset)
-            self.__dict__['__variables'][name] = [variableType, newValue]
+            self.setAttributeKnown(name, variableType, newValue)
         return self, offset
 
+    def setAttributeKnown(self, name, variableType, value):
+        self.__dict__['__variables'][name] = [variableType, value]
 
-class Colfer(dict, TypeCheckMixin, ColferMarshallerMixin, ColferUnmarshallerMixin):
+
+class Colfer(dict, TypeCheckMixin, TypeDeriveValueMixin, ColferMarshallerMixin, ColferUnmarshallerMixin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -486,18 +619,22 @@ class Colfer(dict, TypeCheckMixin, ColferMarshallerMixin, ColferUnmarshallerMixi
     def __delitem__(self, name):
         raise NotImplementedError('Del {} is unimplementable.'.format(name))
 
-    def __setAttributeKnown(self, name, typeAsString, value):
-        self.__dict__['__variables'][name] = [typeAsString, value]
+    def setAttributeKnown(self, name, variableType, value):
+        if value is not None:
+            if not self.isType(value, variableType):
+                raise AttributeError(
+                    'Attribute {} is of type {}. Cannot be assigned to {}'.format(name, variableType, value))
+        else:
+            value = self.getValue(variableType)
+        #print('Setting {}:{} to {}'.format(name, variableType, value))
+        self.__dict__['__variables'][name] = [variableType, value]
 
     def __setattr__(self, name, value):
         if not name in self.__dict__['__variables']:
-            typeAsString = str(type(value).__name__)
+            variableType = str(type(value).__name__)
         else:
-            typeAsString = self.__dict__['__variables'][name][0]
-        if not self.isType(value, typeAsString):
-            raise AttributeError(
-                'Attribute {} is of type {}. Cannot be assigned to {}'.format(name, typeAsString, value))
-        self.__setAttributeKnown(name, typeAsString, value)
+            variableType = self.__dict__['__variables'][name][0]
+        self.setAttributeKnown(name, variableType, value)
 
     def declareAttribute(self, name, variableType, value=None):
         if name is None or variableType is None or type(variableType) is not str:
@@ -505,8 +642,9 @@ class Colfer(dict, TypeCheckMixin, ColferMarshallerMixin, ColferUnmarshallerMixi
         if name in self.__dict__['__variables']:
             raise AttributeError('Cannot declare attribute {} again'.format(name))
         if value is not None:
-            variableType = self.__dict__['__variables'][name][0]
             if not self.isType(value, variableType):
                 raise AttributeError(
                     'Attribute {} is of type {}. Cannot be assigned to {}'.format(name, variableType, value))
+        else:
+            value = self.getValue(variableType)
         self.__dict__['__variables'][name] = [variableType, value]
