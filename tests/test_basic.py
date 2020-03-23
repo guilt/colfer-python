@@ -7,13 +7,14 @@ class ExampleMixin(object):
 
     def getExampleObject(self):
         x = Colfer()
+        x.declareAttribute('a', 'int32')
         x.a = 2
         x.a = 3
 
         x.b = False
         x.b = True
 
-        x.declareAttribute('c', 'short')
+        x.declareAttribute('c', 'int16')
         x.c = -10
 
         x.declareAttribute('d', 'int64')
