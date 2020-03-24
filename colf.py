@@ -300,53 +300,62 @@ class TypeDeriveValueMixin(object):
 
 class ColferMarshallerMixin(TypeCheckMixin):
 
-    def marshallBool(self, name, variableValue, byteOutput, offset):
-
+    def marshallHeader(self, byteOutput, offset):
+        byteOutput[offset] = 0x7f
+        offset += 1
         return offset
 
-    def marshallInt8(self, name, variableValue, byteOutput, offset):
-        return offset
+    def marshallBool(self, name, value, index, byteOutput, offset):
 
-    def marshallUint8(self, name, variableValue, byteOutput, offset):
-        return offset
+        if value:
+            byteOutput[offset] = index
+            offset += 1
 
-    def marshallInt16(self, name, variableValue, byteOutput, offset):
-        return offset
+        return self.marshallHeader(byteOutput, offset)
 
-    def marshallUint16(self, name, variableValue, byteOutput, offset):
-        return offset
+    def marshallInt8(self, name, value, index, byteOutput, offset):
+        return self.marshallHeader(byteOutput, offset)
 
-    def marshallInt32(self, name, variableValue, byteOutput, offset):
-        return offset
+    def marshallUint8(self, name, value, index, byteOutput, offset):
+        return self.marshallHeader(byteOutput, offset)
 
-    def marshallUint32(self, name, variableValue, byteOutput, offset):
-        return offset
+    def marshallInt16(self, name, value, index, byteOutput, offset):
+        return self.marshallHeader(byteOutput, offset)
 
-    def marshallInt64(self, name, variableValue, byteOutput, offset):
-        return offset
+    def marshallUint16(self, name, value, index, byteOutput, offset):
+        return self.marshallHeader(byteOutput, offset)
 
-    def marshallUint64(self, name, variableValue, byteOutput, offset):
-        return offset
+    def marshallInt32(self, name, value, index, byteOutput, offset):
+        return self.marshallHeader(byteOutput, offset)
 
-    def marshallFloat32(self, name, variableValue, byteOutput, offset):
-        return offset
+    def marshallUint32(self, name, value, index, byteOutput, offset):
+        return self.marshallHeader(byteOutput, offset)
 
-    def marshallFloat64(self, name, variableValue, byteOutput, offset):
-        return offset
+    def marshallInt64(self, name, value, index, byteOutput, offset):
+        return self.marshallHeader(byteOutput, offset)
 
-    def marshallTimestamp(self, name, variableValue, byteOutput, offset):
-        return offset
+    def marshallUint64(self, name, value, index, byteOutput, offset):
+        return self.marshallHeader(byteOutput, offset)
 
-    def marshallBinary(self, name, variableValue, byteOutput, offset):
-        return offset
+    def marshallFloat32(self, name, value, index, byteOutput, offset):
+        return self.marshallHeader(byteOutput, offset)
 
-    def marshallString(self, name, variableValue, byteOutput, offset):
-        return offset
+    def marshallFloat64(self, name, value, index, byteOutput, offset):
+        return self.marshallHeader(byteOutput, offset)
 
-    def marshallList(self, name, variableValue, byteOutput, offset):
-        return offset
+    def marshallTimestamp(self, name, value, index, byteOutput, offset):
+        return self.marshallHeader(byteOutput, offset)
 
-    def marshallType(self, name, variableType, variableValue, byteOutput, offset):
+    def marshallBinary(self, name, value, index, byteOutput, offset):
+        return self.marshallHeader(byteOutput, offset)
+
+    def marshallString(self, name, value, index, byteOutput, offset):
+        return self.marshallHeader(byteOutput, offset)
+
+    def marshallList(self, name, value, index, byteOutput, offset):
+        return self.marshallHeader(byteOutput, offset)
+
+    def marshallType(self, name, variableType, value, index, byteOutput, offset):
         STRING_TYPES_MAP = {
             'bool': ColferMarshallerMixin.marshallBool,
             'Bool': ColferMarshallerMixin.marshallBool,
@@ -425,18 +434,20 @@ class ColferMarshallerMixin(TypeCheckMixin):
         }
         if variableType in STRING_TYPES_MAP:
             functionToCall = STRING_TYPES_MAP[variableType]
-            # print('Marshalling: {}:{}={} @{} Invoke: {}'.format(name, variableType, variableValue, offset,
+            # print('Marshalling: {}:{}={} @{} Invoke: {}'.format(name, variableType, value, offset,
             #                                                    functionToCall))
-            return functionToCall(self, name, variableValue, byteOutput, offset)
+            return functionToCall(self, name, value, index, byteOutput, offset)
         return offset
 
     def marshall(self, byteOutput, offset=0):
         assert (byteOutput != None)
         assert (self.isBinary(byteOutput, True))
         assert (offset >= 0)
+        index = 0
         for name in dir(self):
             variableType, value = self.getAttributeWithType(name)
-            offset = self.marshallType(name, variableType, value, byteOutput, offset)
+            offset = self.marshallType(name, variableType, value, index, byteOutput, offset)
+            index += 1
         return offset
 
     def getAttributeWithType(self, name):
@@ -447,52 +458,52 @@ class ColferMarshallerMixin(TypeCheckMixin):
 
 class ColferUnmarshallerMixin(TypeCheckMixin):
 
-    def unmarshallBool(self, name, byteInput, offset):
+    def unmarshallBool(self, name, index, byteInput, offset):
         return None, offset
 
-    def unmarshallInt8(self, name, byteInput, offset):
+    def unmarshallInt8(self, name, index, byteInput, offset):
         return None, offset
 
-    def unmarshallUint8(self, name, byteInput, offset):
+    def unmarshallUint8(self, name, index, byteInput, offset):
         return None, offset
 
-    def unmarshallInt16(self, name, byteInput, offset):
+    def unmarshallInt16(self, name, index, byteInput, offset):
         return None, offset
 
-    def unmarshallUint16(self, name, byteInput, offset):
+    def unmarshallUint16(self, name, index, byteInput, offset):
         return None, offset
 
-    def unmarshallInt32(self, name, byteInput, offset):
+    def unmarshallInt32(self, name, index, byteInput, offset):
         return None, offset
 
-    def unmarshallUint32(self, name, byteInput, offset):
+    def unmarshallUint32(self, name, index, byteInput, offset):
         return None, offset
 
-    def unmarshallInt64(self, name, byteInput, offset):
+    def unmarshallInt64(self, name, index, byteInput, offset):
         return None, offset
 
-    def unmarshallUint64(self, name, byteInput, offset):
+    def unmarshallUint64(self, name, index, byteInput, offset):
         return None, offset
 
-    def unmarshallFloat32(self, name, byteInput, offset):
+    def unmarshallFloat32(self, name, index, byteInput, offset):
         return None, offset
 
-    def unmarshallFloat64(self, name, byteInput, offset):
+    def unmarshallFloat64(self, name, index, byteInput, offset):
         return None, offset
 
-    def unmarshallTimestamp(self, name, byteInput, offset):
+    def unmarshallTimestamp(self, name, index, byteInput, offset):
         return None, offset
 
-    def unmarshallBinary(self, name, byteInput, offset):
+    def unmarshallBinary(self, name, index, byteInput, offset):
         return None, offset
 
-    def unmarshallString(self, name, byteInput, offset):
+    def unmarshallString(self, name, index, byteInput, offset):
         return None, offset
 
-    def unmarshallList(self, name, byteInput, offset):
+    def unmarshallList(self, name, index, byteInput, offset):
         return None, offset
 
-    def unmarshallType(self, name, variableType, byteInput, offset):
+    def unmarshallType(self, name, variableType, index, byteInput, offset):
         STRING_TYPES_MAP = {
             'bool': ColferUnmarshallerMixin.unmarshallBool,
             'Bool': ColferUnmarshallerMixin.unmarshallBool,
@@ -572,17 +583,19 @@ class ColferUnmarshallerMixin(TypeCheckMixin):
         if variableType in STRING_TYPES_MAP:
             functionToCall = STRING_TYPES_MAP[variableType]
             # print('Unmarshalling: {}:{} @{} Invoke: {}'.format(name, variableType, offset, functionToCall))
-            return functionToCall(self, name, byteInput, offset)
+            return functionToCall(self, name, index, byteInput, offset)
         return None, offset
 
     def unmarshall(self, byteInput, offset=0):
         assert (byteInput != None)
         assert (self.isBinary(byteInput))
         assert (offset >= 0)
+        index = 0
         for name in dir(self):
             variableType, _ = self.getAttributeWithType(name)
-            newValue, offset = self.unmarshallType(name, variableType, byteInput, offset)
+            newValue, offset = self.unmarshallType(name, variableType, index, byteInput, offset)
             self.setKnownAttribute(name, variableType, newValue)
+            index += 1
         return self, offset
 
     def getAttributeWithType(self, name):
