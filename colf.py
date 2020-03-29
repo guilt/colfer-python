@@ -301,28 +301,52 @@ class TypeDeriveValueMixin(object):
 class ColferMarshallerMixin(TypeCheckMixin):
 
     def marshallHeader(self, byteOutput, offset):
-        byteOutput[offset] = 0x7f
-        offset += 1
+        byteOutput[offset] = 0x7f; offset += 1
         return offset
 
     def marshallBool(self, name, value, index, byteOutput, offset):
 
         if value:
-            byteOutput[offset] = index
-            offset += 1
+            byteOutput[offset] = index; offset += 1
 
         return self.marshallHeader(byteOutput, offset)
 
     def marshallInt8(self, name, value, index, byteOutput, offset):
+
+        if value != 0:
+            if value < 0:
+                value = -value
+                byteOutput[offset] = (index | 0x80); offset += 1
+                byteOutput[offset] = value & 0xff; offset += 1
+            elif value > 0:
+                byteOutput[offset] = index; offset += 1
+                byteOutput[offset] = value & 0xff; offset += 1
+
         return self.marshallHeader(byteOutput, offset)
 
     def marshallUint8(self, name, value, index, byteOutput, offset):
+
+        if value != 0:
+            byteOutput[offset] = index; offset += 1
+            byteOutput[offset] = value & 0xff; offset += 1
+
         return self.marshallHeader(byteOutput, offset)
 
     def marshallInt16(self, name, value, index, byteOutput, offset):
+
         return self.marshallHeader(byteOutput, offset)
 
     def marshallUint16(self, name, value, index, byteOutput, offset):
+
+        if value != 0:
+            if (value & 0xff00) != 0:
+                byteOutput[offset] = index; offset += 1
+                byteOutput[offset] = (value >> 8) & 0xff; offset += 1
+            else:
+                byteOutput[offset] = (index | 0x80); offset += 1
+
+            byteOutput[offset] = value & 0xff; offset += 1
+
         return self.marshallHeader(byteOutput, offset)
 
     def marshallInt32(self, name, value, index, byteOutput, offset):
