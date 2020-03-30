@@ -10,7 +10,7 @@ class ExampleMixin(object):
 
     def getExampleObject(self):
         x = Colfer()
-        x.declareAttribute('a', 'int32')
+        x.declareAttribute('a', 'uint32')
         x.a = 2
         x.a = 3
 

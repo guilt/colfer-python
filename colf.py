@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 import six
 
-if sys.version_info[0:2] >= (3, 8):
+if sys.version_info[0:2] >= (3, 7):
     long = int
 
 
@@ -298,7 +298,17 @@ class TypeDeriveValueMixin(object):
         return False
 
 
-class ColferMarshallerMixin(TypeCheckMixin):
+class EntropyUtils(object):
+
+    def getPowerOfTwo(self, power=1):
+        if power == long(power) and power >= 0:
+            return (long) (1 << power)
+        raise ArithmeticError("Only support +ve Integral Powers of Two.")
+
+    def getMaximumUnsigned(self, power=1):
+        return self.getPowerOfTwo(power) - 1
+
+class ColferMarshallerMixin(TypeCheckMixin, EntropyUtils):
 
     def marshallHeader(self, byteOutput, offset):
         byteOutput[offset] = 0x7f; offset += 1
@@ -333,6 +343,7 @@ class ColferMarshallerMixin(TypeCheckMixin):
         return self.marshallHeader(byteOutput, offset)
 
     def marshallInt16(self, name, value, index, byteOutput, offset):
+        raise NotImplementedError("Unimplemented Type.")
 
         return self.marshallHeader(byteOutput, offset)
 
@@ -350,33 +361,65 @@ class ColferMarshallerMixin(TypeCheckMixin):
         return self.marshallHeader(byteOutput, offset)
 
     def marshallInt32(self, name, value, index, byteOutput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return self.marshallHeader(byteOutput, offset)
 
     def marshallUint32(self, name, value, index, byteOutput, offset):
+
+        if value != 0:
+            if (value & (~ self.getMaximumUnsigned(power=21))) != 0:
+                byteOutput[offset] = index | 0x80; offset += 1
+                byteOutput[offset] = (value >> 24) & 0xff; offset += 1
+                byteOutput[offset] = (value >> 16) & 0xff; offset += 1
+                byteOutput[offset] = (value >> 8) & 0xff; offset += 1
+            else:
+                byteOutput[offset] = index; offset += 1
+                while value > 0x7f:
+                    byteOutput[offset] = value | 0x80; offset += 1
+                    value >>= 7
+
+            byteOutput[offset] = value & 0xff;
+            offset += 1
+
         return self.marshallHeader(byteOutput, offset)
 
     def marshallInt64(self, name, value, index, byteOutput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return self.marshallHeader(byteOutput, offset)
 
     def marshallUint64(self, name, value, index, byteOutput, offset):
         return self.marshallHeader(byteOutput, offset)
 
     def marshallFloat32(self, name, value, index, byteOutput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return self.marshallHeader(byteOutput, offset)
 
     def marshallFloat64(self, name, value, index, byteOutput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return self.marshallHeader(byteOutput, offset)
 
     def marshallTimestamp(self, name, value, index, byteOutput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return self.marshallHeader(byteOutput, offset)
 
     def marshallBinary(self, name, value, index, byteOutput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return self.marshallHeader(byteOutput, offset)
 
     def marshallString(self, name, value, index, byteOutput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return self.marshallHeader(byteOutput, offset)
 
     def marshallList(self, name, value, index, byteOutput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return self.marshallHeader(byteOutput, offset)
 
     def marshallType(self, name, variableType, value, index, byteOutput, offset):
@@ -470,7 +513,10 @@ class ColferMarshallerMixin(TypeCheckMixin):
         index = 0
         for name in dir(self):
             variableType, value = self.getAttributeWithType(name)
-            offset = self.marshallType(name, variableType, value, index, byteOutput, offset)
+            try:
+                offset = self.marshallType(name, variableType, value, index, byteOutput, offset)
+            except NotImplementedError:
+                pass
             index += 1
         return offset
 
@@ -483,48 +529,78 @@ class ColferMarshallerMixin(TypeCheckMixin):
 class ColferUnmarshallerMixin(TypeCheckMixin):
 
     def unmarshallBool(self, name, index, byteInput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return None, offset
 
     def unmarshallInt8(self, name, index, byteInput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return None, offset
 
     def unmarshallUint8(self, name, index, byteInput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return None, offset
 
     def unmarshallInt16(self, name, index, byteInput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return None, offset
 
     def unmarshallUint16(self, name, index, byteInput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return None, offset
 
     def unmarshallInt32(self, name, index, byteInput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return None, offset
 
     def unmarshallUint32(self, name, index, byteInput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return None, offset
 
     def unmarshallInt64(self, name, index, byteInput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return None, offset
 
     def unmarshallUint64(self, name, index, byteInput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return None, offset
 
     def unmarshallFloat32(self, name, index, byteInput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return None, offset
 
     def unmarshallFloat64(self, name, index, byteInput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return None, offset
 
     def unmarshallTimestamp(self, name, index, byteInput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return None, offset
 
     def unmarshallBinary(self, name, index, byteInput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return None, offset
 
     def unmarshallString(self, name, index, byteInput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return None, offset
 
     def unmarshallList(self, name, index, byteInput, offset):
+        raise NotImplementedError("Unimplemented Type.")
+
         return None, offset
 
     def unmarshallType(self, name, variableType, index, byteInput, offset):
@@ -617,8 +693,11 @@ class ColferUnmarshallerMixin(TypeCheckMixin):
         index = 0
         for name in dir(self):
             variableType, _ = self.getAttributeWithType(name)
-            newValue, offset = self.unmarshallType(name, variableType, index, byteInput, offset)
-            self.setKnownAttribute(name, variableType, newValue)
+            try:
+                newValue, offset = self.unmarshallType(name, variableType, index, byteInput, offset)
+                self.setKnownAttribute(name, variableType, newValue)
+            except NotImplementedError:
+                pass
             index += 1
         return self, offset
 
