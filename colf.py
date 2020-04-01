@@ -351,20 +351,20 @@ class RawFloatConvertUtils(object):
         return cDoubleValue.value
 
 
-class ColferConstants(object):
-    COLFER_MAX_INDEX = 127
-    COLFER_MAX_SIZE = 16 * 1024 * 1024
-    COLFER_LIST_MAX = 64 * 1024
-
-
-class UTFUtils(ColferConstants, EntropyUtils):
+class UTFUtils(EntropyUtils):
 
     def encodeUTFBytes(self, stringValue):
         stringAsBytes = stringValue.encode('utf-8')
         return stringAsBytes, len(stringAsBytes)
 
 
-class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils):
+class ColferConstants(object):
+    COLFER_MAX_INDEX = 127
+    COLFER_MAX_SIZE = 16 * 1024 * 1024
+    COLFER_LIST_MAX = 64 * 1024
+
+
+class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, ColferConstants):
 
     def marshallHeader(self, byteOutput, offset):
         byteOutput[offset] = 0x7f; offset += 1
@@ -586,7 +586,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils):
 
         return self.marshallHeader(byteOutput, offset)
 
-    def marshallType(self, name, variableType, value, index, byteOutput, offset):
+    def marshallType(self, name, variableType, variableSubType, value, index, byteOutput, offset):
         STRING_TYPES_MAP = {
             'bool': ColferMarshallerMixin.marshallBool,
             'Bool': ColferMarshallerMixin.marshallBool,
@@ -663,10 +663,12 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils):
             'tuple': ColferMarshallerMixin.marshallList,
             'Tuple': ColferMarshallerMixin.marshallList,
         }
+        if variableSubType:
+            variableType = '{}_{}'.format(variableType, variableSubType)
         if variableType in STRING_TYPES_MAP:
             functionToCall = STRING_TYPES_MAP[variableType]
-            # print('Marshalling: {}:{}={} @{} Invoke: {}'.format(name, variableType, value, offset,
-            #                                                    functionToCall))
+            #print('Marshalling: {}:{}={} @{} Invoke: {}'.format(name, variableType, value, offset,
+            #                                                   functionToCall))
             return functionToCall(self, name, value, index, byteOutput, offset)
         return offset
 
@@ -676,18 +678,16 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils):
         assert (offset >= 0)
         index = 0
         for name in dir(self):
-            variableType, value = self.getAttributeWithType(name)
-            try:
-                offset = self.marshallType(name, variableType, value, index, byteOutput, offset)
-            except NotImplementedError:
-                pass
+            variableType, value, variableSubType = self.getAttributeWithType(name)
+            offset = self.marshallType(name, variableType, variableSubType, value, index, byteOutput, offset)
             index += 1
         return offset
 
     def getAttributeWithType(self, name):
         value = self.__getattr__(name)
         valueType = str(type(value).__name__)
-        return valueType, value
+        valueSubType = None
+        return valueType, value. valueSubType
 
 
 class ColferUnmarshallerMixin(TypeCheckMixin):
@@ -767,7 +767,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin):
 
         return None, offset
 
-    def unmarshallType(self, name, variableType, index, byteInput, offset):
+    def unmarshallType(self, name, variableType, variableSubType, index, byteInput, offset):
         STRING_TYPES_MAP = {
             'bool': ColferUnmarshallerMixin.unmarshallBool,
             'Bool': ColferUnmarshallerMixin.unmarshallBool,
@@ -844,6 +844,8 @@ class ColferUnmarshallerMixin(TypeCheckMixin):
             'tuple': ColferUnmarshallerMixin.unmarshallList,
             'Tuple': ColferUnmarshallerMixin.unmarshallList,
         }
+        if variableSubType:
+            variableType = '{}_{}'.format(variableType, variableSubType)
         if variableType in STRING_TYPES_MAP:
             functionToCall = STRING_TYPES_MAP[variableType]
             # print('Unmarshalling: {}:{} @{} Invoke: {}'.format(name, variableType, offset, functionToCall))
@@ -856,9 +858,9 @@ class ColferUnmarshallerMixin(TypeCheckMixin):
         assert (offset >= 0)
         index = 0
         for name in dir(self):
-            variableType, _ = self.getAttributeWithType(name)
+            variableType, _, variableSubType = self.getAttributeWithType(name)
             try:
-                newValue, offset = self.unmarshallType(name, variableType, index, byteInput, offset)
+                newValue, offset = self.unmarshallType(name, variableType, variableSubType, index, byteInput, offset)
                 self.setKnownAttribute(name, variableType, newValue)
             except NotImplementedError:
                 pass
@@ -870,11 +872,11 @@ class ColferUnmarshallerMixin(TypeCheckMixin):
         valueType = str(type(value).__name__)
         return valueType, value
 
-    def setKnownAttribute(self, name, variableType, value):
+    def setKnownAttribute(self, name, variableType, value, variableSubType=None):
         self.__setattr__(name, value)
 
 
-class DictMixIn(dict):
+class DictMixIn(dict, TypeCheckMixin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -916,15 +918,20 @@ class DictMixIn(dict):
     def getAttributeWithType(self, name):
         return self.__dict__['__variables'][name]
 
-    def setKnownAttribute(self, name, variableType, value):
-        self.__dict__['__variables'][name] = [variableType, value]
+    def setKnownAttribute(self, name, variableType, value, variableSubType = None):
+        self.__dict__['__variables'][name] = [variableType, value, variableSubType]
 
     def __setattr__(self, name, value):
         if not name in self.__dict__['__variables']:
             variableType = str(type(value).__name__)
+            if self.isList(value) and value:
+                variableSubType = str(type(value[0]).__name__)
+            else:
+                variableSubType = None
         else:
             variableType = self.__dict__['__variables'][name][0]
-        self.setKnownAttribute(name, variableType, value)
+            variableSubType = self.__dict__['__variables'][name][2]
+        self.setKnownAttribute(name, variableType, value, variableSubType)
 
     def setAttribute(self, name, value):
         return self.__setattr__(name, value)
@@ -935,18 +942,21 @@ class Colfer(DictMixIn, TypeDeriveValueMixin, ColferMarshallerMixin, ColferUnmar
     def __delitem__(self, name):
         raise NotImplementedError('Del {} is unimplementable.'.format(name))
 
-    def setKnownAttribute(self, name, variableType, value):
+    def setKnownAttribute(self, name, variableType, value, variableSubType = None):
         if value is not None:
             if not self.isType(value, variableType):
-                raise AttributeError(
-                    'Attribute {} is of type {}. Cannot be assigned to {}'.format(name, variableType, value))
+                raise AttributeError('Attribute {} is of type {}. Cannot be assigned to {}'.format(name, variableType, value))
+            if variableSubType and self.isList(value):
+                for valueSub in value:
+                    if not self.isType(valueSub, variableSubType):
+                        raise AttributeError('Attribute {} is of type {}_{}. Cannot be assigned to {}'.format(name, variableType, variableSubType, valueSub))
         else:
             value = self.getValue(variableType)
-        super().setKnownAttribute(name, variableType, value)
+        super().setKnownAttribute(name, variableType, value, variableSubType)
 
-    def declareAttribute(self, name, variableType, value=None):
+    def declareAttribute(self, name, variableType, value=None, variableSubType=None):
         if name is None or variableType is None or type(variableType) is not str:
             raise AttributeError('Must declare a valid attribute and type')
         if name in dir(self):
             raise AttributeError('Cannot declare attribute {} again'.format(name))
-        self.setKnownAttribute(name, variableType, value)
+        self.setKnownAttribute(name, variableType, value, variableSubType)

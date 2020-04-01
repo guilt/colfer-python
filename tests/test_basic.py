@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 import datetime
 import json
 import unittest
@@ -32,6 +32,7 @@ class ExampleMixin(object):
         x.declareAttribute('eS', 'int64')
         x.eS = -1000000000000
 
+        x.declareAttribute('f', 'list', variableSubType='uint64')
         x.f = (2, 3, 4)
         x.f = [2, 3, 4]
 
