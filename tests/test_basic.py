@@ -3,7 +3,7 @@ import datetime
 import json
 import unittest
 
-from colf import Colfer, EntropyUtils, RawFloatConvertUtils
+from colf import Colfer, EntropyUtils, RawFloatConvertUtils, UTFUtils
 
 
 class ExampleMixin(object):
@@ -17,10 +17,10 @@ class ExampleMixin(object):
         x.b = False
         x.b = True
 
-        x.declareAttribute('c', 'int16')
-        x.c = -10
+        x.declareAttribute('c', 'uint16')
+        x.c = 10
 
-        x.declareAttribute('d', 'int64')
+        x.declareAttribute('d', 'uint64')
         x.d = 1000000000000
 
         x.e = (2, 3, 4)
@@ -28,7 +28,7 @@ class ExampleMixin(object):
         x.f = b'123'
         x.f = bytearray('123', encoding='utf8')
 
-        x.g = u'123'
+        x.g = u'Foo'
 
         x.h = datetime.datetime.now()
 
@@ -125,3 +125,23 @@ class TestRawFloatConvertUtils(unittest.TestCase, RawFloatConvertUtils):
         self.assertEqual(0,             self.getBytesAsDouble(bytes([0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])))
         self.assertEqual(-2,            self.getBytesAsDouble(bytes([0b11000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])))
         self.assertEqual(0.01171875,    self.getBytesAsDouble(bytes([0b00111111, 0b10001000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])))
+
+
+class TestUTFUtils(UTFUtils, unittest.TestCase):
+
+    def testUTFEncode(self):
+        testVectors = [
+            u"A",
+            u"¢",
+            u"ह",
+            u"€",
+            u"한",
+            u"𐍈",
+            u"☃"
+        ]
+        for testVector in testVectors:
+            print('Vector: {}'.format(testVector))
+            valueAsBytes, valueLength = self.encodeUTFBytes(testVector)
+            print('Encoded Value: ', valueAsBytes[:valueLength])
+            decodedTestVector = valueAsBytes[:valueLength].decode('utf-8')
+            self.assertEqual(decodedTestVector, testVector)

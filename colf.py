@@ -351,7 +351,20 @@ class RawFloatConvertUtils(object):
         return cDoubleValue.value
 
 
-class ColferMarshallerMixin(TypeCheckMixin, EntropyUtils, RawFloatConvertUtils):
+class ColferConstants(object):
+    COLFER_MAX_INDEX = 127
+    COLFER_MAX_SIZE = 16 * 1024 * 1024
+    COLFER_LIST_MAX = 64 * 1024
+
+
+class UTFUtils(ColferConstants, EntropyUtils):
+
+    def encodeUTFBytes(self, stringValue):
+        stringAsBytes = stringValue.encode('utf-8')
+        return stringAsBytes, len(stringAsBytes)
+
+
+class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils):
 
     def marshallHeader(self, byteOutput, offset):
         byteOutput[offset] = 0x7f; offset += 1
@@ -365,15 +378,7 @@ class ColferMarshallerMixin(TypeCheckMixin, EntropyUtils, RawFloatConvertUtils):
         return self.marshallHeader(byteOutput, offset)
 
     def marshallInt8(self, name, value, index, byteOutput, offset):
-
-        if value != 0:
-            if value < 0:
-                value = -value
-                byteOutput[offset] = (index | 0x80); offset += 1
-                byteOutput[offset] = value & 0xff; offset += 1
-            elif value > 0:
-                byteOutput[offset] = index; offset += 1
-                byteOutput[offset] = value & 0xff; offset += 1
+        raise NotImplementedError("Unimplemented Type.")
 
         return self.marshallHeader(byteOutput, offset)
 
@@ -393,8 +398,8 @@ class ColferMarshallerMixin(TypeCheckMixin, EntropyUtils, RawFloatConvertUtils):
     def marshallUint16(self, name, value, index, byteOutput, offset):
 
         if value != 0:
-            if (value & self.getComplementaryMaskUnsigned(8)) != 0:
-                # Flat - do not use | 0x80
+            if (value & self.getComplementaryMaskUnsigned(8, 16)) != 0:
+                # Flat - do not use | 0x80. See https://github.com/pascaldekloe/colfer/issues/61
                 byteOutput[offset] = index; offset += 1
                 byteOutput[offset] = (value >> 8) & 0xff; offset += 1
                 byteOutput[offset] = value & 0xff; offset += 1
@@ -413,7 +418,7 @@ class ColferMarshallerMixin(TypeCheckMixin, EntropyUtils, RawFloatConvertUtils):
     def marshallUint32(self, name, value, index, byteOutput, offset):
 
         if value != 0:
-            if (value & self.getComplementaryMaskUnsigned(21)) != 0:
+            if (value & self.getComplementaryMaskUnsigned(21, 32)) != 0:
                 # Flat
                 byteOutput[offset] = index | 0x80; offset += 1
                 byteOutput[offset] = (value >> 24) & 0xff; offset += 1
@@ -424,7 +429,7 @@ class ColferMarshallerMixin(TypeCheckMixin, EntropyUtils, RawFloatConvertUtils):
                 # Compressed Path - do not use | 0x80
                 byteOutput[offset] = index; offset += 1
                 while value > 0x7f:
-                    byteOutput[offset] = value | 0x80; offset += 1
+                    byteOutput[offset] = (value & 0x7f) | 0x80; offset += 1
                     value >>= 7
                 byteOutput[offset] = value & 0xff; offset += 1
 
@@ -454,7 +459,7 @@ class ColferMarshallerMixin(TypeCheckMixin, EntropyUtils, RawFloatConvertUtils):
                 # Compressed Path - do not use | 0x80
                 byteOutput[offset] = index; offset += 1
                 while value > 0x7f:
-                    byteOutput[offset] = value | 0x80; offset += 1
+                    byteOutput[offset] = (value & 0x7f) | 0x80; offset += 1
                     value >>= 7
                 byteOutput[offset] = value & 0xff; offset += 1
 
@@ -464,30 +469,92 @@ class ColferMarshallerMixin(TypeCheckMixin, EntropyUtils, RawFloatConvertUtils):
 
     def marshallFloat32(self, name, value, index, byteOutput, offset):
         valueAsBytes = self.getFloatAsBytes(value)
-
-        raise NotImplementedError("Unimplemented Type.")
+        for valueAsByte in valueAsBytes:
+            byteOutput[offset] = valueAsByte; offset += 1
 
         return self.marshallHeader(byteOutput, offset)
 
     def marshallFloat64(self, name, value, index, byteOutput, offset):
         valueAsBytes = self.getDoubleAsBytes(value)
-
-        raise NotImplementedError("Unimplemented Type.")
+        for valueAsByte in valueAsBytes:
+            byteOutput[offset] = valueAsByte; offset += 1
 
         return self.marshallHeader(byteOutput, offset)
 
     def marshallTimestamp(self, name, value, index, byteOutput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+        timeDelta = value - datetime.datetime.utcfromtimestamp(0)
+        nanoSeconds = timeDelta.microseconds * (10**3)
+        seconds = timeDelta.seconds + (timeDelta.days * 24 * 3600)
+        if nanoSeconds != 0 and seconds != 0:
+            if (seconds & self.getComplementaryMaskUnsigned(32)) != 0:
+                # Flat
+                byteOutput[offset] += index | 0x80; offset += 1
+                byteOutput[offset] += (seconds >> 56) & 0xff; offset += 1
+                byteOutput[offset] += (seconds >> 48) & 0xff; offset += 1
+                byteOutput[offset] += (seconds >> 40) & 0xff; offset += 1
+                byteOutput[offset] += (seconds >> 32) & 0xff; offset += 1
+                byteOutput[offset] += (seconds >> 24) & 0xff; offset += 1
+                byteOutput[offset] += (seconds >> 16) & 0xff; offset += 1
+                byteOutput[offset] += (seconds >> 8) & 0xff; offset += 1
+                byteOutput[offset] += (seconds) & 0xff; offset += 1
+
+                byteOutput[offset] += (nanoSeconds >> 24) & 0xff; offset += 1
+                byteOutput[offset] += (nanoSeconds >> 16) & 0xff; offset += 1
+                byteOutput[offset] += (nanoSeconds >> 8) & 0xff; offset += 1
+                byteOutput[offset] += (nanoSeconds) & 0xff; offset += 1
+            else:
+                # Compressed Path
+                byteOutput[offset] += index; offset += 1
+                byteOutput[offset] += (seconds >> 24) & 0xff; offset += 1
+                byteOutput[offset] += (seconds >> 16) & 0xff; offset += 1
+                byteOutput[offset] += (seconds >> 8) & 0xff; offset += 1
+                byteOutput[offset] += (seconds) & 0xff; offset += 1
+
+                byteOutput[offset] += (nanoSeconds >> 24) & 0xff; offset += 1
+                byteOutput[offset] += (nanoSeconds >> 16) & 0xff; offset += 1
+                byteOutput[offset] += (nanoSeconds >> 8) & 0xff; offset += 1
+                byteOutput[offset] += (nanoSeconds) & 0xff; offset += 1
 
         return self.marshallHeader(byteOutput, offset)
 
     def marshallBinary(self, name, value, index, byteOutput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+        valueLength = len(value)
+        if valueLength != 0:
+            assert(valueLength <= ColferConstants.COLFER_MAX_SIZE)
+
+            # Compressed Path - do not use | 0x80
+            byteOutput[offset] = index; offset += 1
+            while valueLength > 0x7f:
+                byteOutput[offset] = (valueLength & 0x7f) | 0x80; offset += 1
+                valueLength >>= 7
+            byteOutput[offset] = valueLength & 0xff; offset += 1
+
+            # Flat
+            for valueAsByte in value:
+                byteOutput[offset] = valueAsByte; offset += 1
 
         return self.marshallHeader(byteOutput, offset)
 
     def marshallString(self, name, value, index, byteOutput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+        valueLength = len(value)
+        if valueLength != 0:
+
+            # Compressed Path - do not use | 0x80
+            byteOutput[offset] = index; offset += 1
+
+            valueAsBytes, valueLength = self.encodeUTFBytes(value)
+            assert(valueLength <= self.COLFER_MAX_SIZE)
+
+            while valueLength > 0x7f:
+                byteOutput[offset] = (valueLength & 0x7f) | 0x80; offset += 1
+                valueLength >>= 7
+            byteOutput[offset] = valueLength & 0xff; offset += 1
+
+            # Flat
+            index = 0
+            while index < valueLength:
+                valueAsByte = valueAsBytes[index]; index += 1
+                byteOutput[offset] = valueAsByte; offset += 1
 
         return self.marshallHeader(byteOutput, offset)
 
