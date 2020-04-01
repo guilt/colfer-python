@@ -10,37 +10,46 @@ class ExampleMixin(object):
 
     def getExampleObject(self):
         x = Colfer()
-        x.declareAttribute('a', 'uint32')
-        x.a = 2
-        x.a = 3
 
-        x.b = False
-        x.b = True
+        x.a = False
+        x.a = True
+
+        x.declareAttribute('b', 'uint8')
+        x.b = 2
+        x.b = 3
 
         x.declareAttribute('c', 'uint16')
-        x.c = 10
+        x.c = 230
+        x.c = 20000
 
-        x.declareAttribute('d', 'uint64')
-        x.d = 1000000000000
+        x.declareAttribute('d', 'uint32')
+        x.d = 10
+        x.declareAttribute('dS', 'int32')
+        x.dS = -2
 
-        x.e = (2, 3, 4)
+        x.declareAttribute('e', 'uint64')
+        x.e = 1000000000000
+        x.declareAttribute('eS', 'int64')
+        x.eS = -1000000000000
 
-        x.f = b'123'
-        x.f = bytearray('123', encoding='utf8')
+        x.f = (2, 3, 4)
+        x.f = [2, 3, 4]
 
-        x.g = u'Foo'
+        x.g = b'123'
+        x.g = bytearray('123', encoding='utf8')
 
-        x.h = datetime.datetime.now()
+        x.h = u'Foo'
 
-        x.i = [2, 3, 4]
+        x.i = datetime.datetime.now()
 
-        x.declareAttribute('j', 'float64')
-        x.j = 3.14151617
+        x.declareAttribute('j', 'float32')
+        x.j = 3.1415
 
-        x.declareAttribute('k', 'float32')
-        x.k = 3.1415
+        x.declareAttribute('k', 'float64')
+        x.j = 3.141516171819
 
         x.l = 'Hello World'
+        x.l = u'これはテストです'
 
         return x
 
@@ -59,8 +68,8 @@ class TestBasicTypes(unittest.TestCase, ExampleMixin):
 
     def testDictionaryLikeObject(self):
         testObject = self.getExampleObject()
-        testObject['a'] = 4
-        self.assertEqual(testObject.a, 4)
+        testObject['a'] = False
+        self.assertEqual(testObject.a, False)
 
         with self.assertRaises(NotImplementedError) as _:
             del testObject['a']
@@ -72,6 +81,7 @@ class TestBasicTypes(unittest.TestCase, ExampleMixin):
     def testJson(self):
         marshallableObject = self.getExampleObject()
         print(json.dumps(marshallableObject, default=str))
+
 
 class TestEntropyUtils(unittest.TestCase, EntropyUtils):
 
@@ -100,6 +110,7 @@ class TestEntropyUtils(unittest.TestCase, EntropyUtils):
         self.assertEqual(self.getComplementaryMaskUnsigned(8, 16), 0xff00)
         self.assertEqual(0b11111111111000000000000000000000, self.getComplementaryMaskUnsigned(21, 32))
         self.assertEqual(0b1111111111111110000000000000000000000000000000000000000000000000, self.getComplementaryMaskUnsigned(49))
+
 
 class TestRawFloatConvertUtils(unittest.TestCase, RawFloatConvertUtils):
     # Test Reference:
@@ -140,8 +151,6 @@ class TestUTFUtils(UTFUtils, unittest.TestCase):
             u"☃"
         ]
         for testVector in testVectors:
-            print('Vector: {}'.format(testVector))
             valueAsBytes, valueLength = self.encodeUTFBytes(testVector)
-            print('Encoded Value: ', valueAsBytes[:valueLength])
             decodedTestVector = valueAsBytes[:valueLength].decode('utf-8')
             self.assertEqual(decodedTestVector, testVector)

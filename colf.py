@@ -391,7 +391,6 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils):
         return self.marshallHeader(byteOutput, offset)
 
     def marshallInt16(self, name, value, index, byteOutput, offset):
-        raise NotImplementedError("Unimplemented Type.")
 
         return self.marshallHeader(byteOutput, offset)
 
@@ -411,7 +410,19 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils):
         return self.marshallHeader(byteOutput, offset)
 
     def marshallInt32(self, name, value, index, byteOutput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+        if value != 0:
+
+            if value < 0:
+                value = -value
+                byteOutput[offset] = (index | 0x80); offset += 1
+            else:
+                byteOutput[offset] = index; offset += 1
+
+            # Compressed Path
+            while value > 0x7f:
+                byteOutput[offset] = (value & 0x7f) | 0x80; offset += 1
+                value >>= 7
+            byteOutput[offset] = value & 0xff; offset += 1
 
         return self.marshallHeader(byteOutput, offset)
 
@@ -438,7 +449,19 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils):
         return self.marshallHeader(byteOutput, offset)
 
     def marshallInt64(self, name, value, index, byteOutput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+        if value != 0:
+
+            if value < 0:
+                value = -value
+                byteOutput[offset] = (index | 0x80); offset += 1
+            else:
+                byteOutput[offset] = index; offset += 1
+
+            # Compressed Path
+            while value > 0x7f:
+                byteOutput[offset] = (value & 0x7f) | 0x80; offset += 1
+                value >>= 7
+            byteOutput[offset] = value & 0xff; offset += 1
 
         return self.marshallHeader(byteOutput, offset)
 
