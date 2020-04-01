@@ -313,6 +313,7 @@ class EntropyUtils(object):
         assert(powerBits >= power)
         return self.getMaximumUnsigned(powerBits) - self.getMaximumUnsigned(power)
 
+
 class RawFloatConvertUtils(object):
 
     def getFloatAsBytes(self, value):
@@ -323,6 +324,15 @@ class RawFloatConvertUtils(object):
             return bytearray(cMemValue)[::-1]
         return bytearray(cMemValue)
 
+    def getBytesAsFloat(self, value):
+        if sys.byteorder == "little":
+            flippedValue = value[::-1]
+        else:
+            flippedValue = value
+        cFloatValue = ctypes.c_float(0)
+        ctypes.memmove(ctypes.byref(cFloatValue), flippedValue, 4)
+        return cFloatValue.value
+
     def getDoubleAsBytes(self, value):
         cDoubleValue = ctypes.c_double(value)
         cMemValue = (ctypes.c_byte * 8)()
@@ -330,6 +340,16 @@ class RawFloatConvertUtils(object):
         if sys.byteorder == "little":
             return bytearray(cMemValue)[::-1]
         return bytearray(cMemValue)
+
+    def getBytesAsDouble(self, value):
+        if sys.byteorder == "little":
+            flippedValue = value[::-1]
+        else:
+            flippedValue = value
+        cDoubleValue = ctypes.c_double(0)
+        ctypes.memmove(ctypes.byref(cDoubleValue), flippedValue, 8)
+        return cDoubleValue.value
+
 
 class ColferMarshallerMixin(TypeCheckMixin, EntropyUtils, RawFloatConvertUtils):
 

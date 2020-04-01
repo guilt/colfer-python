@@ -105,7 +105,8 @@ class TestRawFloatConvertUtils(unittest.TestCase, RawFloatConvertUtils):
     # Test Reference:
     # https://www.h-schmidt.net/FloatConverter/IEEE754.html
     # https://en.wikipedia.org/wiki/Double-precision_floating-point_format
-    def testKnownValues(self):
+
+    def testKnownValuesAsBytes(self):
         self.assertEqual(self.getFloatAsBytes(0),             bytes([0b00000000, 0b00000000, 0b00000000, 0b00000000]))
         self.assertEqual(self.getFloatAsBytes(0.5),           bytes([0b00111111, 0b00000000, 0b00000000, 0b00000000]))
         self.assertEqual(self.getFloatAsBytes(-0.5),          bytes([0b10111111, 0b00000000, 0b00000000, 0b00000000]))
@@ -114,3 +115,13 @@ class TestRawFloatConvertUtils(unittest.TestCase, RawFloatConvertUtils):
         self.assertEqual(self.getDoubleAsBytes(0),            bytes([0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000]))
         self.assertEqual(self.getDoubleAsBytes(-2),           bytes([0b11000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000]))
         self.assertEqual(self.getDoubleAsBytes(0.01171875),   bytes([0b00111111, 0b10001000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000]))
+
+    def testKnownValuesAsFloats(self):
+        self.assertEqual(0,              self.getBytesAsFloat(bytes([0b00000000, 0b00000000, 0b00000000, 0b00000000])))
+        self.assertEqual(0.5,            self.getBytesAsFloat(bytes([0b00111111, 0b00000000, 0b00000000, 0b00000000])))
+        self.assertEqual(-0.5,           self.getBytesAsFloat(bytes([0b10111111, 0b00000000, 0b00000000, 0b00000000])))
+        self.assertAlmostEqual(9.8,      self.getBytesAsFloat(bytes([0b01000001, 0b00011100, 0b11001100, 0b11001101])), places=6)
+
+        self.assertEqual(0,             self.getBytesAsDouble(bytes([0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])))
+        self.assertEqual(-2,            self.getBytesAsDouble(bytes([0b11000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])))
+        self.assertEqual(0.01171875,    self.getBytesAsDouble(bytes([0b00111111, 0b10001000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])))
