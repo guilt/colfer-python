@@ -99,7 +99,7 @@ class TestEntropyUtils(unittest.TestCase, EntropyUtils):
     def testEntropy(self):
         self.assertEqual(self.getComplementaryMaskUnsigned(8, 16), 0xff00)
         self.assertEqual(0b11111111111000000000000000000000, self.getComplementaryMaskUnsigned(21, 32))
-        self.assertEqual(0b1111111111111110000000000000000000000000000000000000000000000000, bin(self.getComplementaryMaskUnsigned(49)))
+        self.assertEqual(0b1111111111111110000000000000000000000000000000000000000000000000, self.getComplementaryMaskUnsigned(49))
 
 class TestRawFloatConvertUtils(unittest.TestCase, RawFloatConvertUtils):
     # Test Reference:
