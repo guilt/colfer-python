@@ -65,7 +65,7 @@ class TestBasicTypes(unittest.TestCase, ExampleMixin):
 
     def testIteration(self):
         for attr, attrValue in self.getExampleObject().items():
-            print('{} = {}'.format(attr, attrValue))
+            print(u'{} = {}'.format(attr, attrValue))
 
     def testDictionaryLikeObject(self):
         testObject = self.getExampleObject()

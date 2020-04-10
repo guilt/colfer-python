@@ -582,7 +582,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
         return self.marshallHeader(byteOutput, offset)
 
     def marshallList(self, name, value, index, byteOutput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+        #raise NotImplementedError("Unimplemented Type.")
 
         return self.marshallHeader(byteOutput, offset)
 
@@ -879,8 +879,8 @@ class ColferUnmarshallerMixin(TypeCheckMixin):
 class DictMixIn(dict, TypeCheckMixin):
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        super().__setitem__('__dummy', None)
+        super(dict, self).__init__(*args, **kwargs)
+        self.__dummy = None
         self.__dict__['__variables'] = OrderedDict()
 
     def __dir__(self):
@@ -922,6 +922,8 @@ class DictMixIn(dict, TypeCheckMixin):
         self.__dict__['__variables'][name] = [variableType, value, variableSubType]
 
     def __setattr__(self, name, value):
+        if '__dummy' in name:
+            return
         if not name in self.__dict__['__variables']:
             variableType = str(type(value).__name__)
             if self.isList(value) and value:
@@ -931,7 +933,7 @@ class DictMixIn(dict, TypeCheckMixin):
         else:
             variableType = self.__dict__['__variables'][name][0]
             variableSubType = self.__dict__['__variables'][name][2]
-        self.setKnownAttribute(name, variableType, value, variableSubType)
+        self.__dict__['__variables'][name] = [variableType, value, variableSubType]
 
     def setAttribute(self, name, value):
         return self.__setattr__(name, value)
@@ -952,7 +954,7 @@ class Colfer(DictMixIn, TypeDeriveValueMixin, ColferMarshallerMixin, ColferUnmar
                         raise AttributeError('Attribute {} is of type {}_{}. Cannot be assigned to {}'.format(name, variableType, variableSubType, valueSub))
         else:
             value = self.getValue(variableType)
-        super().setKnownAttribute(name, variableType, value, variableSubType)
+        super(DictMixIn, self).setKnownAttribute(name, variableType, value, variableSubType)
 
     def declareAttribute(self, name, variableType, value=None, variableSubType=None):
         if name is None or variableType is None or type(variableType) is not str:
