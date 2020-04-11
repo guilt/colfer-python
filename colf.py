@@ -3,6 +3,7 @@
 import ctypes
 import datetime
 import sys
+import json
 from collections import OrderedDict
 
 import six
@@ -85,6 +86,9 @@ class TypeCheckMixin(object):
 
     def isList(self, variable):
         return self.__isType(variable, [list, tuple])
+
+    def isDict(self, variable):
+        return self.__isType(variable, [dict])
 
     def isType(self, variable, variableType):
         STRING_TYPES_MAP = {
@@ -329,13 +333,19 @@ class RawFloatConvertUtils(object):
             flippedValue = value[::-1]
         else:
             flippedValue = value
+        cMemValue = (ctypes.c_byte * 4)()
+        cMemValue[0] = flippedValue[0]
+        cMemValue[1] = flippedValue[1]
+        cMemValue[2] = flippedValue[2]
+        cMemValue[3] = flippedValue[3]
         cFloatValue = ctypes.c_float(0)
-        ctypes.memmove(ctypes.byref(cFloatValue), flippedValue, 4)
+        ctypes.memmove(ctypes.byref(cFloatValue), cMemValue, 4)
         return cFloatValue.value
 
     def getDoubleAsBytes(self, value):
         cDoubleValue = ctypes.c_double(value)
         cMemValue = (ctypes.c_byte * 8)()
+
         ctypes.memmove(cMemValue, ctypes.byref(cDoubleValue), 8)
         if sys.byteorder == "little":
             return bytearray(cMemValue)[::-1]
@@ -346,8 +356,17 @@ class RawFloatConvertUtils(object):
             flippedValue = value[::-1]
         else:
             flippedValue = value
+        cMemValue = (ctypes.c_byte * 8)()
+        cMemValue[0] = flippedValue[0]
+        cMemValue[1] = flippedValue[1]
+        cMemValue[2] = flippedValue[2]
+        cMemValue[3] = flippedValue[3]
+        cMemValue[4] = flippedValue[4]
+        cMemValue[5] = flippedValue[5]
+        cMemValue[6] = flippedValue[6]
+        cMemValue[7] = flippedValue[7]
         cDoubleValue = ctypes.c_double(0)
-        ctypes.memmove(ctypes.byref(cDoubleValue), flippedValue, 8)
+        ctypes.memmove(ctypes.byref(cDoubleValue), cMemValue, 8)
         return cDoubleValue.value
 
 
@@ -690,7 +709,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
         return valueType, value. valueSubType
 
 
-class ColferUnmarshallerMixin(TypeCheckMixin):
+class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, ColferConstants):
 
     def unmarshallBool(self, name, index, byteInput, offset):
         raise NotImplementedError("Unimplemented Type.")
@@ -876,11 +895,22 @@ class ColferUnmarshallerMixin(TypeCheckMixin):
         self.__setattr__(name, value)
 
 
-class DictMixIn(dict, TypeCheckMixin):
+class JsonMixin(TypeCheckMixin):
+
+    def toJson(self):
+        return json.dumps(self, default=str)
+
+    def fromJson(self, jsonStr):
+        loadedValue = json.loads(jsonStr)
+        if self.isDict(loadedValue):
+            for key, value in loadedValue.items():
+                self.__setattr__(key, value)
+
+
+class DictMixIn(dict, JsonMixin):
 
     def __init__(self, *args, **kwargs):
         super(dict, self).__init__(*args, **kwargs)
-        self.__dummy = None
         self.__dict__['__variables'] = OrderedDict()
 
     def __dir__(self):
@@ -922,8 +952,6 @@ class DictMixIn(dict, TypeCheckMixin):
         self.__dict__['__variables'][name] = [variableType, value, variableSubType]
 
     def __setattr__(self, name, value):
-        if '__dummy' in name:
-            return
         if not name in self.__dict__['__variables']:
             variableType = str(type(value).__name__)
             if self.isList(value) and value:
@@ -937,6 +965,9 @@ class DictMixIn(dict, TypeCheckMixin):
 
     def setAttribute(self, name, value):
         return self.__setattr__(name, value)
+
+    def toJson(self):
+        return json.dumps(dict(self.items()), default=str)
 
 
 class Colfer(DictMixIn, TypeDeriveValueMixin, ColferMarshallerMixin, ColferUnmarshallerMixin):

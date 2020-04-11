@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import datetime
-import json
 import unittest
 
 from colf import Colfer, EntropyUtils, RawFloatConvertUtils, UTFUtils
@@ -65,7 +64,7 @@ class TestBasicTypes(unittest.TestCase, ExampleMixin):
 
     def testIteration(self):
         for attr, attrValue in self.getExampleObject().items():
-            print(u'{} = {}'.format(attr, attrValue))
+            print(attr, ' = ', attrValue)
 
     def testDictionaryLikeObject(self):
         testObject = self.getExampleObject()
@@ -81,7 +80,13 @@ class TestBasicTypes(unittest.TestCase, ExampleMixin):
 
     def testJson(self):
         marshallableObject = self.getExampleObject()
-        print(json.dumps(marshallableObject, default=str))
+        print('JSON: {}'.format(marshallableObject.toJson()))
+
+    def testLoadJson(self):
+        marshallableObject = self.getExampleObject()
+        jsonToLoad = '{"j":2.71828}'
+        marshallableObject.fromJson(jsonToLoad)
+        self.assertAlmostEqual(marshallableObject.j, 2.71828, places=6)
 
 
 class TestEntropyUtils(unittest.TestCase, EntropyUtils):
@@ -134,14 +139,14 @@ class TestRawFloatConvertUtils(unittest.TestCase, RawFloatConvertUtils):
         self.assertBytesEqual(self.getDoubleAsBytes(0.01171875),   [0b00111111, 0b10001000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])
 
     def testKnownValuesAsFloats(self):
-        self.assertEqual(0,              self.getBytesAsFloat(bytes([0b00000000, 0b00000000, 0b00000000, 0b00000000])))
-        self.assertEqual(0.5,            self.getBytesAsFloat(bytes([0b00111111, 0b00000000, 0b00000000, 0b00000000])))
-        self.assertEqual(-0.5,           self.getBytesAsFloat(bytes([0b10111111, 0b00000000, 0b00000000, 0b00000000])))
-        self.assertAlmostEqual(9.8,      self.getBytesAsFloat(bytes([0b01000001, 0b00011100, 0b11001100, 0b11001101])), places=6)
+        self.assertEqual(0,              self.getBytesAsFloat(bytearray([0b00000000, 0b00000000, 0b00000000, 0b00000000])))
+        self.assertEqual(0.5,            self.getBytesAsFloat(bytearray([0b00111111, 0b00000000, 0b00000000, 0b00000000])))
+        self.assertEqual(-0.5,           self.getBytesAsFloat(bytearray([0b10111111, 0b00000000, 0b00000000, 0b00000000])))
+        self.assertAlmostEqual(9.8,      self.getBytesAsFloat(bytearray([0b01000001, 0b00011100, 0b11001100, 0b11001101])), places=6)
 
-        self.assertEqual(0,             self.getBytesAsDouble(bytes([0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])))
-        self.assertEqual(-2,            self.getBytesAsDouble(bytes([0b11000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])))
-        self.assertEqual(0.01171875,    self.getBytesAsDouble(bytes([0b00111111, 0b10001000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])))
+        self.assertEqual(0,             self.getBytesAsDouble(bytearray([0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])))
+        self.assertEqual(-2,            self.getBytesAsDouble(bytearray([0b11000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])))
+        self.assertEqual(0.01171875,    self.getBytesAsDouble(bytearray([0b00111111, 0b10001000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])))
 
 
 class TestUTFUtils(UTFUtils, unittest.TestCase):

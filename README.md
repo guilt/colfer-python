@@ -6,14 +6,15 @@ of *Colfer* serialization/deserialization for Python.
 ## Running Unit Tests
 
 ```bash
-python3 -m unittest
+pip install -r tox
+tox
 ```
 
 ## Python 2 Compatibility
 
 This is still a work in progress. After *Python 3* is
-well supported, work will begin on testing this on
-a reasonably new *Python 2.x* version.
+well supported, *Python 2* will be partially supported
+and `Tox` will be run periodically for release versions.
 
 ## Work In Progress
 
