@@ -36,7 +36,7 @@ class ExampleMixin(object):
         x.f = (2, 3, 4)
         x.f = [2, 3, 4]
 
-        x.g = b'123'
+        x.g = bytearray(b'123') #Python 2 Coalesces b'123' to str
         x.g = bytearray('123', encoding='utf8')
 
         x.h = u'Foo'
@@ -118,15 +118,20 @@ class TestRawFloatConvertUtils(unittest.TestCase, RawFloatConvertUtils):
     # https://www.h-schmidt.net/FloatConverter/IEEE754.html
     # https://en.wikipedia.org/wiki/Double-precision_floating-point_format
 
-    def testKnownValuesAsBytes(self):
-        self.assertEqual(self.getFloatAsBytes(0),             bytes([0b00000000, 0b00000000, 0b00000000, 0b00000000]))
-        self.assertEqual(self.getFloatAsBytes(0.5),           bytes([0b00111111, 0b00000000, 0b00000000, 0b00000000]))
-        self.assertEqual(self.getFloatAsBytes(-0.5),          bytes([0b10111111, 0b00000000, 0b00000000, 0b00000000]))
-        self.assertEqual(self.getFloatAsBytes(9.8),           bytes([0b01000001, 0b00011100, 0b11001100, 0b11001101]))
+    def assertBytesEqual(self, lhs, rhs):
+        self.assertEqual(len(rhs), len(rhs), 'Lengths of Bytes are not equal')
+        for offset in range(len(lhs)):
+            self.assertTrue(int(lhs[offset]) == int(rhs[offset]), 'Bytes at position: {} are not the same'.format(offset))
 
-        self.assertEqual(self.getDoubleAsBytes(0),            bytes([0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000]))
-        self.assertEqual(self.getDoubleAsBytes(-2),           bytes([0b11000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000]))
-        self.assertEqual(self.getDoubleAsBytes(0.01171875),   bytes([0b00111111, 0b10001000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000]))
+    def testKnownValuesAsBytes(self):
+        self.assertBytesEqual(self.getFloatAsBytes(0),             [0b00000000, 0b00000000, 0b00000000, 0b00000000])
+        self.assertBytesEqual(self.getFloatAsBytes(0.5),           [0b00111111, 0b00000000, 0b00000000, 0b00000000])
+        self.assertBytesEqual(self.getFloatAsBytes(-0.5),          [0b10111111, 0b00000000, 0b00000000, 0b00000000])
+        self.assertBytesEqual(self.getFloatAsBytes(9.8),           [0b01000001, 0b00011100, 0b11001100, 0b11001101])
+
+        self.assertBytesEqual(self.getDoubleAsBytes(0),            [0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])
+        self.assertBytesEqual(self.getDoubleAsBytes(-2),           [0b11000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])
+        self.assertBytesEqual(self.getDoubleAsBytes(0.01171875),   [0b00111111, 0b10001000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])
 
     def testKnownValuesAsFloats(self):
         self.assertEqual(0,              self.getBytesAsFloat(bytes([0b00000000, 0b00000000, 0b00000000, 0b00000000])))
