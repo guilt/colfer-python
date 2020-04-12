@@ -35,7 +35,7 @@ class ExampleMixin(object):
         x.f = (2, 3, 4)
         x.f = [2, 3, 4]
 
-        x.g = bytearray(b'123') #Python 2 Coalesces b'123' to str
+        x.g = bytearray(b'123')  # Python 2 Coalesces b'123' to str
         x.g = bytearray('123', encoding='utf8')
 
         x.h = u'Foo'
@@ -46,10 +46,16 @@ class ExampleMixin(object):
         x.j = 3.1415
 
         x.declareAttribute('k', 'float64')
-        x.j = 3.141516171819
+        x.k = 3.141516171819
 
         x.l = 'Hello World'
         x.l = u'これはテストです'
+
+        x.declareAttribute('m', 'list', variableSubType='str')
+        x.m = ('Hello', 'World')
+
+        x.declareAttribute('n', 'list', variableSubType='bool')
+        x.n = (True, False)
 
         return x
 
@@ -91,11 +97,16 @@ class TestBasicTypes(unittest.TestCase, ExampleMixin):
 
 class TestEntropyUtils(unittest.TestCase, EntropyUtils):
 
+    def testSign(self):
+        self.assertEqual(self.getSign(-1), 1)
+        self.assertEqual(self.getSign(0), 0)
+        self.assertEqual(self.getSign(1), 0)
+
     def testPowers(self):
         self.assertEqual(self.getPowerOfTwo(0), 1)
         self.assertEqual(self.getPowerOfTwo(), 2)
         self.assertEqual(self.getPowerOfTwo(2), 4)
-        self.assertEqual(self.getPowerOfTwo(200), 2**200)
+        self.assertEqual(self.getPowerOfTwo(200), 2 ** 200)
         with self.assertRaises(ArithmeticError):
             self.getPowerOfTwo(2.5)
         with self.assertRaises(ArithmeticError):
@@ -115,7 +126,8 @@ class TestEntropyUtils(unittest.TestCase, EntropyUtils):
     def testEntropy(self):
         self.assertEqual(self.getComplementaryMaskUnsigned(8, 16), 0xff00)
         self.assertEqual(0b11111111111000000000000000000000, self.getComplementaryMaskUnsigned(21, 32))
-        self.assertEqual(0b1111111111111110000000000000000000000000000000000000000000000000, self.getComplementaryMaskUnsigned(49))
+        self.assertEqual(0b1111111111111110000000000000000000000000000000000000000000000000,
+                         self.getComplementaryMaskUnsigned(49))
 
 
 class TestRawFloatConvertUtils(unittest.TestCase, RawFloatConvertUtils):
@@ -126,27 +138,38 @@ class TestRawFloatConvertUtils(unittest.TestCase, RawFloatConvertUtils):
     def assertBytesEqual(self, lhs, rhs):
         self.assertEqual(len(rhs), len(rhs), 'Lengths of Bytes are not equal')
         for offset in range(len(lhs)):
-            self.assertTrue(int(lhs[offset]) == int(rhs[offset]), 'Bytes at position: {} are not the same'.format(offset))
+            self.assertTrue(int(lhs[offset]) == int(rhs[offset]),
+                            'Bytes at position: {} are not the same'.format(offset))
 
     def testKnownValuesAsBytes(self):
-        self.assertBytesEqual(self.getFloatAsBytes(0),             [0b00000000, 0b00000000, 0b00000000, 0b00000000])
-        self.assertBytesEqual(self.getFloatAsBytes(0.5),           [0b00111111, 0b00000000, 0b00000000, 0b00000000])
-        self.assertBytesEqual(self.getFloatAsBytes(-0.5),          [0b10111111, 0b00000000, 0b00000000, 0b00000000])
-        self.assertBytesEqual(self.getFloatAsBytes(9.8),           [0b01000001, 0b00011100, 0b11001100, 0b11001101])
+        self.assertBytesEqual(self.getFloatAsBytes(0), [0b00000000, 0b00000000, 0b00000000, 0b00000000])
+        self.assertBytesEqual(self.getFloatAsBytes(0.5), [0b00111111, 0b00000000, 0b00000000, 0b00000000])
+        self.assertBytesEqual(self.getFloatAsBytes(-0.5), [0b10111111, 0b00000000, 0b00000000, 0b00000000])
+        self.assertBytesEqual(self.getFloatAsBytes(9.8), [0b01000001, 0b00011100, 0b11001100, 0b11001101])
 
-        self.assertBytesEqual(self.getDoubleAsBytes(0),            [0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])
-        self.assertBytesEqual(self.getDoubleAsBytes(-2),           [0b11000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])
-        self.assertBytesEqual(self.getDoubleAsBytes(0.01171875),   [0b00111111, 0b10001000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])
+        self.assertBytesEqual(self.getDoubleAsBytes(0),
+                              [0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
+                               0b00000000])
+        self.assertBytesEqual(self.getDoubleAsBytes(-2),
+                              [0b11000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
+                               0b00000000])
+        self.assertBytesEqual(self.getDoubleAsBytes(0.01171875),
+                              [0b00111111, 0b10001000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
+                               0b00000000])
 
     def testKnownValuesAsFloats(self):
-        self.assertEqual(0,              self.getBytesAsFloat(bytearray([0b00000000, 0b00000000, 0b00000000, 0b00000000])))
-        self.assertEqual(0.5,            self.getBytesAsFloat(bytearray([0b00111111, 0b00000000, 0b00000000, 0b00000000])))
-        self.assertEqual(-0.5,           self.getBytesAsFloat(bytearray([0b10111111, 0b00000000, 0b00000000, 0b00000000])))
-        self.assertAlmostEqual(9.8,      self.getBytesAsFloat(bytearray([0b01000001, 0b00011100, 0b11001100, 0b11001101])), places=6)
+        self.assertEqual(0, self.getBytesAsFloat(bytearray([0b00000000, 0b00000000, 0b00000000, 0b00000000])))
+        self.assertEqual(0.5, self.getBytesAsFloat(bytearray([0b00111111, 0b00000000, 0b00000000, 0b00000000])))
+        self.assertEqual(-0.5, self.getBytesAsFloat(bytearray([0b10111111, 0b00000000, 0b00000000, 0b00000000])))
+        self.assertAlmostEqual(9.8, self.getBytesAsFloat(bytearray([0b01000001, 0b00011100, 0b11001100, 0b11001101])),
+                               places=6)
 
-        self.assertEqual(0,             self.getBytesAsDouble(bytearray([0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])))
-        self.assertEqual(-2,            self.getBytesAsDouble(bytearray([0b11000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])))
-        self.assertEqual(0.01171875,    self.getBytesAsDouble(bytearray([0b00111111, 0b10001000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])))
+        self.assertEqual(0, self.getBytesAsDouble(bytearray(
+            [0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])))
+        self.assertEqual(-2, self.getBytesAsDouble(bytearray(
+            [0b11000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])))
+        self.assertEqual(0.01171875, self.getBytesAsDouble(bytearray(
+            [0b00111111, 0b10001000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000])))
 
 
 class TestUTFUtils(UTFUtils, unittest.TestCase):
