@@ -4,4 +4,4 @@
 six
 
 # Testing
-unittest2
+coverage

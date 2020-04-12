@@ -57,6 +57,9 @@ class ExampleMixin(object):
         x.declareAttribute('n', 'list', variableSubType='bool')
         x.n = (True, False)
 
+        x.declareAttribute('o', 'list', variableSubType='bytes')
+        x.o = (bytearray(b'Foo'), bytearray(b'Bar'))
+
         return x
 
 
