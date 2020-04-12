@@ -6,7 +6,7 @@ of *Colfer* serialization/deserialization for Python.
 ## Running Unit Tests
 
 ```bash
-pip install -r tox
+pip install tox
 tox
 ```
 
