@@ -797,15 +797,32 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
 
 class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, ColferConstants):
 
-    def unmarshallBool(self, name, index, byteInput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+    def unmarshallHeader(self, value, byteInput, offset):
+        offset += 1
+        return value, offset
 
-        return None, offset
+    def unmarshallBool(self, name, index, byteInput, offset):
+
+        if byteInput[offset] != index:
+            return None, offset
+
+        offset += 1
+        value = True
+
+        return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallUint8(self, name, index, byteInput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+        if byteInput[offset] != index:
+            return 0, offset
 
-        return None, offset
+        offset += 1
+        value = byteInput[offset]; offset += 1
+
+        # Unsigned-Ness
+        if (value < 0):
+            value = (256 + value)
+
+        return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallUint16(self, name, index, byteInput, offset):
         raise NotImplementedError("Unimplemented Type.")
