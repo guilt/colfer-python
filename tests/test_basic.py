@@ -2,7 +2,8 @@
 import datetime
 import unittest
 
-from colf import Colfer, EntropyUtils, RawFloatConvertUtils, UTFUtils
+from colf import Colfer
+from colf_base import EntropyUtils, RawFloatConvertUtils, UTFUtils
 
 
 class ExampleMixin(object):
