@@ -8,11 +8,10 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
         return value, offset
 
     def unmarshallBool(self, name, index, byteInput, offset):
-        indexIsSigned = True if (index & 0x80) else False
-        index = (index ^ 0x80) if indexIsSigned else index
-
-        if byteInput[offset] != index:
+        if (byteInput[offset] & 0x7f) != index:
             return None, offset
+
+        indexIsSigned = True if byteInput[offset] & 0x80 else False
 
         offset += 1
         value = True
@@ -20,11 +19,10 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
         return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallUint8(self, name, index, byteInput, offset):
-        indexIsSigned = True if (index & 0x80) else False
-        index = (index ^ 0x80) if indexIsSigned else index
+        if (byteInput[offset] & 0x7f) != index:
+            return None, offset
 
-        if byteInput[offset] != index:
-            return 0, offset
+        indexIsSigned = True if byteInput[offset] & 0x80 else False
 
         offset += 1
         value = byteInput[offset]; offset += 1
@@ -32,11 +30,10 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
         return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallUint16(self, name, index, byteInput, offset):
-        indexIsSigned = True if (index & 0x80) else False
-        index = (index ^ 0x80) if indexIsSigned else index
+        if (byteInput[offset] & 0x7f) != index:
+            return None, offset
 
-        if byteInput[offset] != index:
-            return 0, offset
+        indexIsSigned = True if byteInput[offset] & 0x80 else False
 
         offset += 1
 
@@ -54,9 +51,26 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
         return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallInt32(self, name, index, byteInput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+        if (byteInput[offset] & 0x7f) != index:
+            return None, offset
 
-        return None, offset
+        indexIsSigned = True if byteInput[offset] & 0x80 else False
+
+        offset += 1
+
+        # Compressed Path
+        value = 0
+        bitShift = 0
+
+        valueAsByte = byteInput[offset]; offset += 1
+        while valueAsByte > 0x7f:
+            value |= (valueAsByte & 0x7f) << bitShift; bitShift += 7
+            valueAsByte = byteInput[offset]; offset += 1
+
+        value |= (valueAsByte & 0x7f) << bitShift
+        value = -value if indexIsSigned else value
+
+        return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallListInt32(self, name, index, byteInput, offset):
         raise NotImplementedError("Unimplemented Type.")
