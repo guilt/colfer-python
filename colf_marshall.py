@@ -9,6 +9,13 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
         byteOutput[offset] = 0x7f; offset += 1
         return offset
 
+    def marshallVarInt(self, value, byteOutput, offset):
+        while value > 0x7f:
+            byteOutput[offset] = (value & 0x7f) | 0x80; offset += 1
+            value >>= 7
+        byteOutput[offset] = value & 0xff; offset += 1
+        return offset
+
     def marshallBool(self, name, value, index, byteOutput, offset):
 
         if value:
@@ -49,10 +56,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
                 byteOutput[offset] = index; offset += 1
 
             # Compressed Path
-            while value > 0x7f:
-                byteOutput[offset] = (value & 0x7f) | 0x80; offset += 1
-                value >>= 7
-            byteOutput[offset] = value & 0xff; offset += 1
+            offset = self.marshallVarInt(value, byteOutput, offset)
 
         return self.marshallHeader(byteOutput, offset)
 
@@ -65,19 +69,13 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
             byteOutput[offset] = index; offset += 1
 
             # Compressed Path
-            while valueLength > 0x7f:
-                byteOutput[offset] = (valueLength & 0x7f) | 0x80; offset += 1
-                value >>= 7
-            byteOutput[offset] = valueLength & 0xff; offset += 1
+            offset = self.marshallVarInt(valueLength, byteOutput, offset)
 
             for valueElement in value:
                 # Move last bit to the end
                 valueElementEncoded = ((valueElement << 1) & 0xffffffff) ^ ((valueElement >> 31) & 0x00000001)
                 # Compressed Path
-                while valueElementEncoded > 0x7f:
-                    byteOutput[offset] = (valueElementEncoded & 0x7f) | 0x80; offset += 1
-                    valueElementEncoded >>= 7
-                byteOutput[offset] = valueElementEncoded & 0xff; offset += 1
+                offset = self.marshallVarInt(valueElementEncoded, byteOutput, offset)
 
         return self.marshallHeader(byteOutput, offset)
 
@@ -94,10 +92,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
             else:
                 # Compressed Path - do not use | 0x80
                 byteOutput[offset] = index; offset += 1
-                while value > 0x7f:
-                    byteOutput[offset] = (value & 0x7f) | 0x80; offset += 1
-                    value >>= 7
-                byteOutput[offset] = value & 0xff; offset += 1
+                offset = self.marshallVarInt(value, byteOutput, offset)
 
             offset += 1
 
@@ -113,10 +108,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
                 byteOutput[offset] = index; offset += 1
 
             # Compressed Path
-            while value > 0x7f:
-                byteOutput[offset] = (value & 0x7f) | 0x80; offset += 1
-                value >>= 7
-            byteOutput[offset] = value & 0xff; offset += 1
+            offset = self.marshallVarInt(value, byteOutput, offset)
 
         return self.marshallHeader(byteOutput, offset)
 
@@ -129,10 +121,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
             byteOutput[offset] = index; offset += 1
 
             # Compressed Path
-            while valueLength > 0x7f:
-                byteOutput[offset] = (valueLength & 0x7f) | 0x80; offset += 1
-                value >>= 7
-            byteOutput[offset] = valueLength & 0xff; offset += 1
+            offset = self.marshallVarInt(valueLength, byteOutput, offset)
 
             for valueElement in value:
                 # Move last bit to the end
@@ -163,10 +152,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
             else:
                 # Compressed Path - do not use | 0x80
                 byteOutput[offset] = index; offset += 1
-                while value > 0x7f:
-                    byteOutput[offset] = (value & 0x7f) | 0x80; offset += 1
-                    value >>= 7
-                byteOutput[offset] = value & 0xff; offset += 1
+                offset = self.marshallVarInt(value, byteOutput, offset)
 
             offset += 1
 
@@ -188,10 +174,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
             byteOutput[offset] = index; offset += 1
 
             # Compressed Path
-            while valueLength > 0x7f:
-                byteOutput[offset] = (valueLength & 0x7f) | 0x80; offset += 1
-                value >>= 7
-            byteOutput[offset] = valueLength & 0xff; offset += 1
+            offset = self.marshallVarInt(valueLength, byteOutput, offset)
 
             for valueElement in value:
                 valueAsBytes = self.getFloatAsBytes(valueElement)
@@ -216,10 +199,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
             byteOutput[offset] = index; offset += 1
 
             # Compressed Path
-            while valueLength > 0x7f:
-                byteOutput[offset] = (valueLength & 0x7f) | 0x80; offset += 1
-                value >>= 7
-            byteOutput[offset] = valueLength & 0xff; offset += 1
+            offset = self.marshallVarInt(valueLength, byteOutput, offset)
 
             for valueElement in value:
                 valueAsBytes = self.getDoubleAsBytes(valueElement)
@@ -271,10 +251,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
 
             # Compressed Path
             byteOutput[offset] = index; offset += 1
-            while valueLength > 0x7f:
-                byteOutput[offset] = (valueLength & 0x7f) | 0x80; offset += 1
-                valueLength >>= 7
-            byteOutput[offset] = valueLength & 0xff; offset += 1
+            offset = self.marshallVarInt(valueLength, byteOutput, offset)
 
             # Flat
             for valueAsByte in value:
@@ -289,10 +266,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
 
             # Compressed Path
             byteOutput[offset] = index; offset += 1
-            while valueLength > 0x7f:
-                byteOutput[offset] = (valueLength & 0x7f) | 0x80; offset += 1
-                valueLength >>= 7
-            byteOutput[offset] = valueLength & 0xff; offset += 1
+            offset = self.marshallVarInt(valueLength, byteOutput, offset)
 
             # Flat
             for valueAsBytes in value:
@@ -300,11 +274,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
                 assert (valueLength <= ColferConstants.COLFER_MAX_SIZE)
 
                 # Compressed Path
-                byteOutput[offset] = index; offset += 1
-                while valueLength > 0x7f:
-                    byteOutput[offset] = (valueLength & 0x7f) | 0x80; offset += 1
-                    valueLength >>= 7
-                byteOutput[offset] = valueLength & 0xff; offset += 1
+                offset = self.marshallVarInt(valueLength, byteOutput, offset)
 
                 # Flat
                 for valueAsByte in valueAsBytes:
@@ -323,10 +293,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
             valueAsBytes, valueLength = self.encodeUTFBytes(value)
             assert(valueLength <= self.COLFER_MAX_SIZE)
 
-            while valueLength > 0x7f:
-                byteOutput[offset] = (valueLength & 0x7f) | 0x80; offset += 1
-                valueLength >>= 7
-            byteOutput[offset] = valueLength & 0xff; offset += 1
+            offset = self.marshallVarInt(valueLength, byteOutput, offset)
 
             # Flat
             index = 0
@@ -345,10 +312,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
             byteOutput[offset] = index; offset += 1
 
             # Compressed Path
-            while valueLength > 0x7f:
-                byteOutput[offset] = (valueLength & 0x7f) | 0x80; offset += 1
-                valueLength >>= 7
-            byteOutput[offset] = valueLength & 0xff; offset += 1
+            offset = self.marshallVarInt(valueLength, byteOutput, offset)
 
             #Flat
             for valueAsString in value:
@@ -359,10 +323,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
                 assert (valueLength <= self.COLFER_MAX_SIZE)
 
                 # Compressed Path
-                while valueLength > 0x7f:
-                    byteOutput[offset] = (valueLength & 0x7f) | 0x80; offset += 1
-                    valueLength >>= 7
-                byteOutput[offset] = valueLength & 0xff; offset += 1
+                offset = self.marshallVarInt(valueLength, byteOutput, offset)
 
                 # Flat
                 index = 0
