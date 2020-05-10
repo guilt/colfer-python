@@ -20,7 +20,8 @@ class TypeCheckMixin(object):
         return variable >= minInclusive and variable <= maxInclusive
 
     def __isInt(self, variable):
-        return self.__isType(variable, [int])
+        # In Python 2.7, -2^31 is treated as long, not int.
+        return self.__isType(variable, [int, long])
 
     def __isShort(self, variable):
         return self.isInt16(variable)

@@ -97,15 +97,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
         offset += 1
 
         # Compressed Path
-        value = 0
-        bitShift = 0
-
-        valueAsByte = byteInput[offset]; offset += 1
-        while valueAsByte > 0x7f:
-            value |= (valueAsByte & 0x7f) << bitShift; bitShift += 7
-            valueAsByte = byteInput[offset]; offset += 1
-
-        value |= (valueAsByte & 0x7f) << bitShift
+        value, offset = self.unmarshallVarInt(byteInput, offset)
         value = -value if indexIsSigned else value
 
         return self.unmarshallHeader(value, byteInput, offset)
