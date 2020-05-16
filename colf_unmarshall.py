@@ -7,15 +7,21 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
         offset += 1
         return value, offset
 
-    def unmarshallVarInt(self, byteInput, offset):
+    def unmarshallVarInt(self, byteInput, offset, limit=-1):
         value = 0
         bitShift = 0
 
         valueAsByte = byteInput[offset]; offset += 1
-        while valueAsByte > 0x7f:
-            value |= (valueAsByte & 0x7f) << bitShift;
-            valueAsByte = byteInput[offset]; offset += 1
-            bitShift += 7
+        if limit > 0:
+            while valueAsByte > 0x7f and limit:
+                value |= (valueAsByte & 0x7f) << bitShift;
+                valueAsByte = byteInput[offset]; offset += 1
+                bitShift += 7; limit -= 1
+        else:
+            while valueAsByte > 0x7f:
+                value |= (valueAsByte & 0x7f) << bitShift;
+                valueAsByte = byteInput[offset]; offset += 1
+                bitShift += 7
 
         value |= (valueAsByte & 0x7f) << bitShift
 
@@ -79,9 +85,22 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
         return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallListInt32(self, name, index, byteInput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+        if (byteInput[offset] & 0x7f) != index:
+            return None, offset
 
-        return None, offset
+        # Compressed Path
+        valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+        value = []
+
+        for _ in range(valueLength):
+            # Compressed Path
+            valueElementEncoded, offset = self.unmarshallVarInt(byteInput, offset)
+            # Move last bit to front
+            valueElement = ((valueElementEncoded & 0x00000001) << 31) ^ ((valueElementEncoded >> 1)&0x7fffffff)
+            # Append to Array
+            value.append(valueElement)
+
+        return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallUint32(self, name, index, byteInput, offset):
         raise NotImplementedError("Unimplemented Type.")
@@ -97,15 +116,28 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
         offset += 1
 
         # Compressed Path
-        value, offset = self.unmarshallVarInt(byteInput, offset)
+        value, offset = self.unmarshallVarInt(byteInput, offset, 8)
         value = -value if indexIsSigned else value
 
         return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallListInt64(self, name, value, index, byteInput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+        if (byteInput[offset] & 0x7f) != index:
+            return None, offset
 
-        return None, offset
+        # Compressed Path
+        valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+        value = []
+
+        for _ in range(valueLength):
+            # Compressed Path
+            valueElementEncoded, offset = self.unmarshallVarInt(byteInput, offset, 8)
+            # Move last bit to front
+            valueElement = ((valueElementEncoded & 0x0000000000000001) << 31) ^ ((valueElementEncoded >> 1)&0x7fffffffffffffff)
+            # Append to Array
+            value.append(valueElement)
+
+        return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallUint64(self, name, index, byteInput, offset):
         raise NotImplementedError("Unimplemented Type.")
