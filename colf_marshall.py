@@ -9,10 +9,15 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
         byteOutput[offset] = 0x7f; offset += 1
         return offset
 
-    def marshallVarInt(self, value, byteOutput, offset):
-        while value > 0x7f:
-            byteOutput[offset] = (value & 0x7f) | 0x80; offset += 1
-            value >>= 7
+    def marshallVarInt(self, value, byteOutput, offset, limit=-1):
+        if limit > 0:
+            while value > 0x7f and limit:
+                byteOutput[offset] = (value & 0x7f) | 0x80; offset += 1
+                value >>= 7; limit -= 1
+        else:
+            while value > 0x7f:
+                byteOutput[offset] = (value & 0x7f) | 0x80; offset += 1
+                value >>= 7
         byteOutput[offset] = value & 0xff; offset += 1
         return offset
 
@@ -108,7 +113,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
                 byteOutput[offset] = index; offset += 1
 
             # Compressed Path
-            offset = self.marshallVarInt(value, byteOutput, offset)
+            offset = self.marshallVarInt(value, byteOutput, offset, 8)
 
         return self.marshallHeader(byteOutput, offset)
 
@@ -127,11 +132,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
                 # Move last bit to the end
                 valueElementEncoded = ((valueElement << 1) & 0xffffffffffffffff) ^ ((valueElement >> 63) & 0x0000000000000001)
                 # Compressed Path
-                writtenBytes = 0
-                while valueElementEncoded > 0x7f and writtenBytes < 8:
-                    byteOutput[offset] = (valueElementEncoded & 0x7f) | 0x80; offset += 1
-                    valueElementEncoded >>= 7
-                    writtenBytes += 1
+                offset = self.marshallVarInt(valueElementEncoded, byteOutput, offset, 8)
                 byteOutput[offset] = valueElementEncoded & 0xff; offset += 1
 
         return self.marshallHeader(byteOutput, offset)
