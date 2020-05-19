@@ -64,7 +64,6 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
         else:
             # Compressed
             value = byteInput[offset]; offset += 1
-            print(value)
 
         return self.unmarshallHeader(value, byteInput, offset)
 
@@ -97,7 +96,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
             valueElementEncoded, offset = self.unmarshallVarInt(byteInput, offset)
             # Move last bit to front
             valueElement = ((valueElementEncoded & 0x00000001) << 31) ^ ((valueElementEncoded >> 1)&0x7fffffff)
-            if valueElement == 0x10000000:
+            if valueElement == 0x80000000:
                 valueElement = -valueElement
             # Append to Array
             value.append(valueElement)
@@ -138,7 +137,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
             valueElementEncoded, offset = self.unmarshallVarInt(byteInput, offset, 8)
             # Move last bit to front
             valueElement = ((valueElementEncoded & 0x0000000000000001) << 31) ^ ((valueElementEncoded >> 1)&0x7fffffffffffffff)
-            if valueElement == 0x1000000000000000:
+            if valueElement == 0x8000000000000000:
                 valueElement = -valueElement
             # Append to Array
             value.append(valueElement)
