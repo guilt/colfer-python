@@ -57,13 +57,14 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
 
         offset += 1
 
-        if indexIsSigned:
+        if not indexIsSigned:
             # Flat - do not use | 0x80. See https://github.com/pascaldekloe/colfer/issues/61
             value = byteInput[offset]; offset += 1
             value = (value << 8) | byteInput[offset]; offset += 1
         else:
             # Compressed
             value = byteInput[offset]; offset += 1
+            print(value)
 
         return self.unmarshallHeader(value, byteInput, offset)
 
@@ -240,7 +241,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
         return None, offset
 
     def unmarshall(self, byteInput, offset=0):
-        assert (byteInput != None)
+        assert (byteInput is not None)
         assert (self.isBinary(byteInput))
         assert (offset >= 0)
         index = 0

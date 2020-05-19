@@ -40,7 +40,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
         if value != 0:
 
             if (value & self.getComplementaryMaskUnsigned(8, 16)) != 0:
-                # Flat - do not use | 0x80. See y
+                # Flat - do not use | 0x80. See https://github.com/pascaldekloe/colfer/issues/61
                 byteOutput[offset] = index; offset += 1
                 byteOutput[offset] = (value >> 8) & 0xff; offset += 1
                 byteOutput[offset] = value & 0xff; offset += 1
