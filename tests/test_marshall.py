@@ -6,9 +6,9 @@ from tests.test_basic import ExampleMixin
 
 class TestMarshallPrimitives(unittest.TestCase, ExampleMixin):
 
-    def runTestOnType(self, typeName, testVectors):
+    def runTestOnType(self, variableType, testVectors, variableSubType=None):
         marshallableObject = Colfer()
-        marshallableObject.declareAttribute('v', typeName)
+        marshallableObject.declareAttribute('v', variableType, variableSubType=variableSubType)
 
         for vector in testVectors:
             byteOutput = bytearray(30)
@@ -22,7 +22,35 @@ class TestMarshallPrimitives(unittest.TestCase, ExampleMixin):
             unmarshalledObject, _ = marshallableObject.unmarshall(byteInput)
             print('Unmarshalled: {}'.format(unmarshalledObject))
             self.assertEqual(vector, unmarshalledObject['v'])
+            print('')
 
+
+    def testBool(self):
+        testVectors = [
+            False,
+            True
+        ]
+        self.runTestOnType('bool', testVectors)
+
+
+    def testUint8(self):
+        testVectors = [
+            0,
+            35,
+            255
+        ]
+        self.runTestOnType('uint8', testVectors)
+
+
+    def testUint16(self):
+        testVectors = [
+            0,
+            35,
+            255,
+            258,
+            65535
+        ]
+        self.runTestOnType('uint16', testVectors)
 
     def testInt32(self):
         testVectors = [
@@ -30,11 +58,25 @@ class TestMarshallPrimitives(unittest.TestCase, ExampleMixin):
             35,
             129,
             270,
-            768
+            768,
             -2147483648,
             2147483647,
         ]
         self.runTestOnType('int32', testVectors)
+
+    def testListInt32(self):
+        testVectors = [
+            [],
+            [1],
+            [129],
+            [270],
+            [768],
+            [-2147483648],
+            [2147483647],
+            [1,2],
+            [0,1]
+        ]
+        self.runTestOnType('list', testVectors, 'int32')
 
 
 class TestMarshall(unittest.TestCase, ExampleMixin):

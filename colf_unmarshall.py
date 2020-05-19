@@ -60,13 +60,10 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
         if indexIsSigned:
             # Flat - do not use | 0x80. See https://github.com/pascaldekloe/colfer/issues/61
             value = byteInput[offset]; offset += 1
-            value = (value << 8) | byteInput(offset); offset += 1
+            value = (value << 8) | byteInput[offset]; offset += 1
         else:
             # Compressed
             value = byteInput[offset]; offset += 1
-
-        if byteInput[offset] != index:
-            return 0, offset
 
         return self.unmarshallHeader(value, byteInput, offset)
 
@@ -88,6 +85,8 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
+        offset += 1
+
         # Compressed Path
         valueLength, offset = self.unmarshallVarInt(byteInput, offset)
         value = []
@@ -97,6 +96,8 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
             valueElementEncoded, offset = self.unmarshallVarInt(byteInput, offset)
             # Move last bit to front
             valueElement = ((valueElementEncoded & 0x00000001) << 31) ^ ((valueElementEncoded >> 1)&0x7fffffff)
+            if valueElement == 0x10000000:
+                valueElement = -valueElement
             # Append to Array
             value.append(valueElement)
 
@@ -125,6 +126,8 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
+        offset += 1
+
         # Compressed Path
         valueLength, offset = self.unmarshallVarInt(byteInput, offset)
         value = []
@@ -134,6 +137,8 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
             valueElementEncoded, offset = self.unmarshallVarInt(byteInput, offset, 8)
             # Move last bit to front
             valueElement = ((valueElementEncoded & 0x0000000000000001) << 31) ^ ((valueElementEncoded >> 1)&0x7fffffffffffffff)
+            if valueElement == 0x1000000000000000:
+                valueElement = -valueElement
             # Append to Array
             value.append(valueElement)
 
@@ -243,7 +248,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
             variableType, _, variableSubType = self.getAttributeWithType(name)
             try:
                 newValue, offset = self.unmarshallType(name, variableType, variableSubType, index, byteInput, offset)
-                self.setKnownAttribute(name, variableType, newValue)
+                self.setKnownAttribute(name, variableType, newValue, variableSubType)
             except NotImplementedError:
                 pass
             index += 1
