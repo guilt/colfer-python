@@ -11,7 +11,7 @@ class TestMarshallPrimitives(unittest.TestCase, ExampleMixin):
         marshallableObject.declareAttribute('v', variableType, variableSubType=variableSubType)
 
         for vector in testVectors:
-            byteOutput = bytearray(30)
+            byteOutput = bytearray(80)
             marshallableObject['v'] = vector
             print('Marshalling: {}'.format(marshallableObject))
             length = marshallableObject.marshall(byteOutput)

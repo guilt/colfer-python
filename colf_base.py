@@ -225,8 +225,8 @@ class IntegerEncodeUtils(object):
 
     def decodeInt32(self, valueEncoded):
         value = ((valueEncoded & 0x00000001) << 31) ^ ((valueEncoded >> 1) & 0x7fffffff)
-        if value == 0x80000000:
-            value = -value
+        if value & 0x80000000:
+            value = value - 0x100000000
         return value
 
     def encodeInt64(self, value):
@@ -235,8 +235,8 @@ class IntegerEncodeUtils(object):
 
     def decodeInt64(self, valueEncoded):
         value = ((valueEncoded & 0x0000000000000001) << 63) ^ ((valueEncoded >> 1) & 0x7fffffffffffffff)
-        if value == 0x8000000000000000:
-            value = -value
+        if value & 0x8000000000000000:
+            value = value - 0x10000000000000000
         return value
 
 
