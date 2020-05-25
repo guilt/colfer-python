@@ -119,6 +119,16 @@ class TestMarshallPrimitives(unittest.TestCase, ExampleMixin):
         ]
         self.runTestOnType('float32', testVectors)
 
+    def testListFloat32(self):
+        testVectors = [
+            [],
+            [0.0],
+            [0.5],
+            [-0.5],
+            [0.0, 0.5, -0.5, 9.800000190734863, -2.0, 0.01171875]
+        ]
+        self.runTestOnType('list', testVectors,'float32')
+
     def testFloat64(self):
         testVectors = [
             0.0,
@@ -129,6 +139,17 @@ class TestMarshallPrimitives(unittest.TestCase, ExampleMixin):
             0.01171875,
         ]
         self.runTestOnType('float64', testVectors)
+
+    def testListFloat64(self):
+        testVectors = [
+            [],
+            [0.0],
+            [0.5],
+            [-0.5],
+            [0.0, 0.5, -0.5, 9.800000190734863, -2.0, 0.01171875]
+        ]
+        self.runTestOnType('list', testVectors,'float64')
+
 
 class TestMarshall(unittest.TestCase, ExampleMixin):
 

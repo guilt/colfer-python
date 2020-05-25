@@ -153,25 +153,67 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         offset += 1
 
+        # Flat
         valueAsBytes = byteInput[offset:offset+4]; offset += 4
+        # Convert
         value = self.getBytesAsFloat(valueAsBytes)
 
         return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallListFloat32(self, name, index, byteInput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+        if (byteInput[offset] & 0x7f) != index:
+            return None, offset
 
-        return None, offset
+        offset += 1
+
+        # Compressed Path
+        valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+        value = []
+
+        for _ in range(valueLength):
+            # Flat
+            valueAsBytes = byteInput[offset:offset+4]; offset += 4
+            # Convert
+            valueElement = self.getBytesAsFloat(valueAsBytes)
+            # Append to Array
+            value.append(valueElement)
+
+        return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallFloat64(self, name, index, byteInput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+        if (byteInput[offset] & 0x7f) != index:
+            return None, offset
 
-        return None, offset
+        indexIsSigned = True if byteInput[offset] & 0x80 else False
+
+        offset += 1
+
+        # Flat
+        valueAsBytes = byteInput[offset:offset+8]; offset += 8
+        # Convert
+        value = self.getBytesAsDouble(valueAsBytes)
+
+        return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallListFloat64(self, name, index, byteInput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+        if (byteInput[offset] & 0x7f) != index:
+            return None, offset
 
-        return None, offset
+        offset += 1
+
+        # Compressed Path
+        valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+        value = []
+
+        for _ in range(valueLength):
+            # Flat
+            valueAsBytes = byteInput[offset:offset+8]; offset += 8
+            # Convert
+            valueElement = self.getBytesAsDouble(valueAsBytes)
+            # Append to Array
+            value.append(valueElement)
+
+        return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallTimestamp(self, name, index, byteInput, offset):
         raise NotImplementedError("Unimplemented Type.")
