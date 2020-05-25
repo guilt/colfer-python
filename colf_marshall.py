@@ -159,10 +159,12 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
         return self.marshallHeader(byteOutput, offset)
 
     def marshallFloat32(self, name, value, index, byteOutput, offset):
-        valueAsBytes = self.getFloatAsBytes(value)
-        for valueAsByte in valueAsBytes:
-            byteOutput[offset] = valueAsByte; offset += 1
-
+        if value != 0:
+            # Flat
+            byteOutput[offset] = index; offset += 1
+            valueAsBytes = self.getFloatAsBytes(value)
+            for valueAsByte in valueAsBytes:
+                byteOutput[offset] = valueAsByte; offset += 1
         return self.marshallHeader(byteOutput, offset)
 
     def marshallListFloat32(self, name, value, index, byteOutput, offset):
@@ -184,9 +186,12 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
         return self.marshallHeader(byteOutput, offset)
 
     def marshallFloat64(self, name, value, index, byteOutput, offset):
-        valueAsBytes = self.getDoubleAsBytes(value)
-        for valueAsByte in valueAsBytes:
-            byteOutput[offset] = valueAsByte; offset += 1
+        if value != 0:
+            # Flat
+            byteOutput[offset] = index; offset += 1
+            valueAsBytes = self.getDoubleAsBytes(value)
+            for valueAsByte in valueAsBytes:
+                byteOutput[offset] = valueAsByte; offset += 1
 
         return self.marshallHeader(byteOutput, offset)
 

@@ -146,9 +146,17 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
         return None, offset
 
     def unmarshallFloat32(self, name, index, byteInput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+        if (byteInput[offset] & 0x7f) != index:
+            return None, offset
 
-        return None, offset
+        indexIsSigned = True if byteInput[offset] & 0x80 else False
+
+        offset += 1
+
+        valueAsBytes = byteInput[offset:offset+4]; offset += 4
+        value = self.getBytesAsFloat(valueAsBytes)
+
+        return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallListFloat32(self, name, index, byteInput, offset):
         raise NotImplementedError("Unimplemented Type.")
