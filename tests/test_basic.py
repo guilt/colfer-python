@@ -3,7 +3,7 @@ import datetime
 import unittest
 
 from colf import Colfer
-from colf_base import EntropyUtils, RawFloatConvertUtils, UTFUtils
+from colf_base import EntropyUtils, RawFloatConvertUtils, IntegerEncodeUtils, UTFUtils
 
 
 class ExampleMixin(object):
@@ -132,6 +132,47 @@ class TestEntropyUtils(unittest.TestCase, EntropyUtils):
         self.assertEqual(0b11111111111000000000000000000000, self.getComplementaryMaskUnsigned(21, 32))
         self.assertEqual(0b1111111111111110000000000000000000000000000000000000000000000000,
                          self.getComplementaryMaskUnsigned(49))
+
+
+class TestIntegerEncodeUtils(unittest.TestCase, IntegerEncodeUtils):
+
+    def testInt32(self):
+        testVectors = [
+            0,
+            -1,
+            -128,
+            -32768,
+            32767,
+            -2147483648,
+            2147483647,
+        ]
+        for vector in testVectors:
+            encodedVector = self.encodeInt32(vector)
+            decodedVector = self.decodeInt32(encodedVector)
+            self.assertEqual(vector, decodedVector, msg='Conversion: {}->{}->{}'.format(vector, encodedVector, decodedVector))
+
+    def testInt64(self):
+        testVectors = [
+            0,
+            -1,
+            -128,
+            -32768,
+            32767,
+            35,
+            129,
+            270,
+            768,
+            -2147483648,
+            2147483647,
+            -922337203685478,
+            922337203685477,
+            9223372036854775807,
+            -9223372036854775808,
+        ]
+        for vector in testVectors:
+            encodedVector = self.encodeInt64(vector)
+            decodedVector = self.decodeInt64(encodedVector)
+            self.assertEqual(vector, decodedVector, msg='Conversion: {}->{}->{}'.format(vector, encodedVector, decodedVector))
 
 
 class TestRawFloatConvertUtils(unittest.TestCase, RawFloatConvertUtils):
