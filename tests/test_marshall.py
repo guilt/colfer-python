@@ -87,13 +87,26 @@ class TestMarshallPrimitives(unittest.TestCase, ExampleMixin):
             768,
             -2147483648,
             2147483647,
-            -922337203685477,
+            -922337203685478,
             922337203685477,
-            -9223372036854775808,
             9223372036854775807,
+            -9223372036854775808,
         ]
         self.runTestOnType('int64', testVectors)
 
+    def testListInt64(self):
+        testVectors = [
+            [],
+            [1],
+            [129],
+            [270],
+            [768],
+            [-2147483648],
+            [2147483647],
+            [1,129,270,768,-2147483648,2147483647,-922337203685478,922337203685477],
+            [0,-9223372036854775808,9223372036854775807]
+        ]
+        self.runTestOnType('list', testVectors, 'int64')
 
 class TestMarshall(unittest.TestCase, ExampleMixin):
 

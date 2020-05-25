@@ -1,7 +1,7 @@
-from colf_base import TypeCheckMixin, RawFloatConvertUtils, UTFUtils, ColferConstants
+from colf_base import TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeUtils, UTFUtils, ColferConstants
 
 
-class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, ColferConstants):
+class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeUtils, UTFUtils, ColferConstants):
 
     def unmarshallHeader(self, value, byteInput, offset):
         offset += 1
@@ -23,7 +23,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
                 valueAsByte = byteInput[offset]; offset += 1
                 bitShift += 7
 
-        value |= (valueAsByte & 0x7f) << bitShift
+        value |= (valueAsByte & 0xff) << bitShift
 
         return value, offset
 
@@ -95,9 +95,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
             # Compressed Path
             valueElementEncoded, offset = self.unmarshallVarInt(byteInput, offset)
             # Move last bit to front
-            valueElement = ((valueElementEncoded & 0x00000001) << 31) ^ ((valueElementEncoded >> 1)&0x7fffffff)
-            if valueElement == 0x80000000:
-                valueElement = -valueElement
+            valueElement = self.decodeInt32(valueElementEncoded)
             # Append to Array
             value.append(valueElement)
 
@@ -122,7 +120,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
 
         return self.unmarshallHeader(value, byteInput, offset)
 
-    def unmarshallListInt64(self, name, value, index, byteInput, offset):
+    def unmarshallListInt64(self, name, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
@@ -136,9 +134,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Co
             # Compressed Path
             valueElementEncoded, offset = self.unmarshallVarInt(byteInput, offset, 8)
             # Move last bit to front
-            valueElement = ((valueElementEncoded & 0x0000000000000001) << 31) ^ ((valueElementEncoded >> 1)&0x7fffffffffffffff)
-            if valueElement == 0x8000000000000000:
-                valueElement = -valueElement
+            valueElement = self.decodeInt64(valueElementEncoded)
             # Append to Array
             value.append(valueElement)
 

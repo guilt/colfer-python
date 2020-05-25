@@ -1,9 +1,9 @@
 import datetime
 
-from colf_base import TypeCheckMixin, RawFloatConvertUtils, UTFUtils, ColferConstants
+from colf_base import TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeUtils, UTFUtils, ColferConstants
 
 
-class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, ColferConstants):
+class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeUtils, UTFUtils, ColferConstants):
 
     def marshallHeader(self, byteOutput, offset):
         byteOutput[offset] = 0x7f; offset += 1
@@ -78,7 +78,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
 
             for valueElement in value:
                 # Move last bit to the end
-                valueElementEncoded = ((valueElement << 1) & 0xffffffff) ^ ((valueElement >> 31) & 0x00000001)
+                valueElementEncoded = self.encodeInt32(valueElement)
                 # Compressed Path
                 offset = self.marshallVarInt(valueElementEncoded, byteOutput, offset)
 
@@ -130,7 +130,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, UTFUtils, Colf
 
             for valueElement in value:
                 # Move last bit to the end
-                valueElementEncoded = ((valueElement << 1) & 0xffffffffffffffff) ^ ((valueElement >> 63) & 0x0000000000000001)
+                valueElementEncoded = self.encodeInt64(valueElement)
                 # Compressed Path
                 offset = self.marshallVarInt(valueElementEncoded, byteOutput, offset, 8)
                 byteOutput[offset] = valueElementEncoded & 0xff; offset += 1
