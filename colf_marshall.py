@@ -133,7 +133,6 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
                 valueElementEncoded = self.encodeInt64(valueElement)
                 # Compressed Path
                 offset = self.marshallVarInt(valueElementEncoded, byteOutput, offset, 8)
-                byteOutput[offset] = valueElementEncoded & 0xff; offset += 1
 
         return self.marshallHeader(byteOutput, offset)
 
