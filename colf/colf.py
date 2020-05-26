@@ -1,6 +1,6 @@
-from colf_base import TypeDeriveValueMixin, DictMixIn
-from colf_marshall import ColferMarshallerMixin
-from colf_unmarshall import ColferUnmarshallerMixin
+from .colf_base import TypeDeriveValueMixin, DictMixIn
+from .colf_marshall import ColferMarshallerMixin
+from .colf_unmarshall import ColferUnmarshallerMixin
 
 
 class Colfer(DictMixIn, TypeDeriveValueMixin, ColferMarshallerMixin, ColferUnmarshallerMixin):

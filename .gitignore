@@ -1,6 +1,9 @@
 .idea
 .tox
 .coverage
+*.egg-info
 venv
+build
+dist
 coverage_reports
 *.pyc

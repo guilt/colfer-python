@@ -228,11 +228,44 @@ class TestMarshallPrimitives(unittest.TestCase, ExampleMixin):
 
 class TestMarshall(unittest.TestCase, ExampleMixin):
 
+    def createExampleObject(self):
+        return self.getExampleObject()
+
     def testMarshallAndUnMarshall(self):
         byteOutput = bytearray(200)
         marshallableObject = self.getExampleObject()
         print('Original: {}'.format(marshallableObject))
         length = marshallableObject.marshall(byteOutput)
         print('Marshalled: {}'.format(byteOutput[:length]))
-        unmarshalledObject, _ = self.getExampleObject().unmarshall(byteOutput[:length])
+        unmarshalledObject, _ = self.createExampleObject().unmarshall(byteOutput[:length])
         print('Unmarshalled: {}'.format(unmarshalledObject))
+
+
+class TestDerivedMarshall(TestMarshall):
+
+    class TestType(Colfer):
+
+        def __init__(self):
+            super(Colfer, self).__init__()
+            self.declareAttribute('radius', 'float64')
+            self.declareAttribute('test', 'bool')
+
+        def marshall(self, byteOutput, offset=0):
+            offset = self.marshallFloat64(self.radius, 0, byteOutput, offset)
+            offset = self.marshallBool(self.test, 1, byteOutput, offset)
+            return offset
+
+        def unmarshall(self, byteInput, offset=0):
+            self.radius, offset = self.unmarshallFloat64(0, byteInput, offset)
+            self.test, offset = self.unmarshallBool(1, byteInput, offset)
+            return self, offset
+
+    def createExampleObject(self):
+        exampleObject = TestDerivedMarshall.TestType()
+        return exampleObject
+
+    def getExampleObject(self):
+        exampleObject = self.createExampleObject()
+        exampleObject.radius = 2.5
+        exampleObject.test = True
+        return exampleObject

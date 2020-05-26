@@ -3,7 +3,7 @@ import datetime
 import unittest
 
 from colf import Colfer
-from colf_base import EntropyUtils, RawFloatConvertUtils, IntegerEncodeUtils, UTFUtils
+from colf.colf_base import EntropyUtils, RawFloatConvertUtils, IntegerEncodeUtils, UTFUtils
 
 
 class ExampleMixin(object):

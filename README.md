@@ -1,7 +1,49 @@
 # Python-Colfer
 
-This repository aims to provide a strong typed version
-of *Colfer* serialization/deserialization for Python.
+A strong typed version of *Colfer* serialization/deserialization for Python.
+
+## Usage
+
+First install with PyPi
+
+```bash
+pip install colf
+```
+
+Then use it to construct a Colfer Object and use it:
+
+```python
+from colf import Colfer
+
+class TestType(Colfer):
+
+    def __init__(self):
+        super(Colfer, self).__init__()
+        self.declareAttribute('radius', 'float64')
+        self.declareAttribute('test', 'bool')
+
+    def marshall(self, byteOutput, offset=0):
+        offset = self.marshallFloat64(self.radius, 0, byteOutput, offset)
+        offset = self.marshallBool(self.test, 1, byteOutput, offset)
+        return offset
+
+    def unmarshall(self, byteInput, offset=0):
+        self.radius, offset = self.unmarshallFloat64(0, byteInput, offset)
+        self.test, offset = self.unmarshallBool(1, byteInput, offset)
+        return self, offset
+
+# Write to Somewhere
+exampleObject = TestType()
+exampleObject.radius = 2.5
+exampleObject.test = True
+byteOutput = bytearray(24)
+length = exampleObject.marshall(byteOutput)
+print(byteOutput[:length])
+
+# Read from Somewhere
+deserializedObject, _ = TestType().unmarshall(byteOutput[:length])
+print(deserializedObject)
+```
 
 ## Running Unit Tests
 
@@ -10,14 +52,16 @@ pip install tox
 tox
 ```
 
-## Python 2 Compatibility
+## Call for Testing Volunteers
 
-This is still a work in progress. After *Python 3* is
-well supported, *Python 2* will be partially supported
-and `Tox` will be run periodically for release versions.
+The code was tested on Python 2.7, 3.7, 3.8.
+ 
+This code has been tested on Little-Endian machines only. It
+requires to be tested on other architectures such as PowerPC, or those
+with unique floating point formats.
 
-## Work In Progress
+Also, there may be chances this code may not work on some Python
+version due to nuances not previously uncovered.
 
-This repository is still a work in progress. So it
-does not implement the functionality yet. This notice will
-get removed once the functionality is complete.
+Please volunteer to test it on as many exotic computers, OSes
+and send in your patches (or) bug reports.
