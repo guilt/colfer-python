@@ -1,3 +1,5 @@
+import datetime
+
 from colf_base import TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeUtils, UTFUtils, ColferConstants
 
 
@@ -174,8 +176,6 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
-        indexIsSigned = True if byteInput[offset] & 0x80 else False
-
         offset += 1
 
         # Flat
@@ -209,8 +209,6 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
-        indexIsSigned = True if byteInput[offset] & 0x80 else False
-
         offset += 1
 
         # Flat
@@ -241,9 +239,25 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
         return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallTimestamp(self, index, byteInput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+        if (byteInput[offset] & 0x7f) != index:
+            return None, offset
 
-        return None, offset
+        indexIsFlat = True if byteInput[offset] & 0x80 else False
+
+        offset += 1
+
+        if indexIsFlat:
+            seconds, offset = self.unmarshallInt(byteInput, offset, 8)
+            nanoSeconds, offset = self.unmarshallInt(byteInput, offset, 4)
+        else:
+            seconds, offset = self.unmarshallInt(byteInput, offset, 4)
+            nanoSeconds, offset = self.unmarshallInt(byteInput, offset, 4)
+
+        timeDelta = datetime.timedelta(seconds=seconds, microseconds=nanoSeconds//1000)
+
+        value = datetime.datetime.utcfromtimestamp(0) + timeDelta
+
+        return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallBinary(self, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:
@@ -355,7 +369,8 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
         if variableType in STRING_TYPES_MAP:
             functionToCall = STRING_TYPES_MAP[variableType]
             return functionToCall(self, index, byteInput, offset)
-        return None, offset
+        else:  # pragma: no cover
+            return None, offset
 
     def unmarshall(self, byteInput, offset=0):
         assert (byteInput is not None)
@@ -364,18 +379,14 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
         index = 0
         for name in dir(self):
             variableType, _, variableSubType = self.getAttributeWithType(name)
-            try:
-                newValue, offset = self.unmarshallType(variableType, variableSubType, index, byteInput, offset)
-                self.setKnownAttribute(name, variableType, newValue, variableSubType)
-            except NotImplementedError:
-                pass
+            newValue, offset = self.unmarshallType(variableType, variableSubType, index, byteInput, offset)
+            self.setKnownAttribute(name, variableType, newValue, variableSubType)
             index += 1
         return self, offset
 
-    def getAttributeWithType(self, name):
+    def getAttributeWithType(self, name):  # pragma: no cover
         value = self.__getattr__(name)
-        valueType = str(type(value).__name__)
-        return valueType, value
+        return None, value, None
 
-    def setKnownAttribute(self, name, variableType, value, variableSubType=None):
+    def setKnownAttribute(self, name, variableType, value, variableSubType=None):  # pragma: no cover
         self.__setattr__(name, value)

@@ -35,6 +35,7 @@ class ExampleMixin(object):
         x.declareAttribute('f', 'list', variableSubType='uint64')
         x.f = (2, 3, 4)
         x.f = [2, 3, 4]
+        x.fS = (2, 3)
 
         x.g = bytearray(b'123')  # Python 2 Coalesces b'123' to str
         x.g = bytearray('123', encoding='utf8')
@@ -61,15 +62,15 @@ class ExampleMixin(object):
         x.declareAttribute('o', 'list', variableSubType='bytes')
         x.o = (bytearray(b'Foo'), bytearray(b'Bar'))
 
-        x.declareAttribute('p', 'unknownType')
-
         return x
 
 
 class TestBasicTypes(unittest.TestCase, ExampleMixin):
 
     def testTypes(self):
-        self.getExampleObject()
+        testObject = self.getExampleObject()
+        testObject.declareAttribute('p', 'unknownType')
+        self.assertEqual(testObject.getAttributeWithType('p')[0], 'unknownType')
 
     def testDir(self):
         print(dir(self.getExampleObject()))
@@ -81,10 +82,45 @@ class TestBasicTypes(unittest.TestCase, ExampleMixin):
     def testDictionaryLikeObject(self):
         testObject = self.getExampleObject()
         testObject['a'] = False
+        testObject['f'] = [3, 4, 5]
         self.assertEqual(testObject.a, False)
+        self.assertEqual(testObject.f, [3, 4, 5])
+
+        self.assertTrue('a' in testObject.keys())
+        self.assertTrue('f' in testObject.keys())
+        self.assertTrue(list(testObject.values())[0] == False)
+
+    def testAssertions(self):
+        testObject = self.getExampleObject()
 
         with self.assertRaises(NotImplementedError) as _:
             del testObject['a']
+
+        with self.assertRaises(AttributeError) as _:
+            _ = testObject['unknownKey']
+
+        with self.assertRaises(AttributeError) as _:
+            testObject['a'] = 'foo'
+
+        with self.assertRaises(AttributeError) as _:
+            testObject['f'] = ['foo']
+
+        with self.assertRaises(AttributeError) as _:
+            testObject.declareAttribute(None, 'int32')
+
+        with self.assertRaises(AttributeError) as _:
+            testObject.declareAttribute('newKey', None)
+
+        with self.assertRaises(AttributeError) as _:
+            testObject.declareAttribute('newKey', 'int32')
+            testObject.declareAttribute('newKey', 'int32')
+
+        with self.assertRaises(AttributeError) as _:
+            testObject['f'] = ['foo']
+
+        with self.assertRaises(AttributeError) as _:
+            testObject.declareAttribute('p', 'unknownType')
+            testObject['p'] = 3
 
     def testStr(self):
         marshallableObject = self.getExampleObject()
@@ -92,14 +128,8 @@ class TestBasicTypes(unittest.TestCase, ExampleMixin):
 
     def testJson(self):
         marshallableObject = self.getExampleObject()
-        print('JSON: {}'.format(marshallableObject.toJson()))
-
-    def testLoadJson(self):
-        marshallableObject = self.getExampleObject()
-        jsonToLoad = '{"j":2.71828}'
-        marshallableObject.fromJson(jsonToLoad)
-        self.assertAlmostEqual(marshallableObject.j, 2.71828, places=6)
-
+        objectAsJson = marshallableObject.toJson()
+        print('JSON: ', objectAsJson)
 
 class TestEntropyUtils(unittest.TestCase, EntropyUtils):
 

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import datetime
 import unittest
 
 from colf import Colfer
@@ -177,6 +178,15 @@ class TestMarshallPrimitives(unittest.TestCase, ExampleMixin):
             [0.0, 0.5, -0.5, 9.800000190734863, -2.0, 0.01171875]
         ]
         self.runTestOnType('list', testVectors,'float64')
+
+    def testTimestamp(self):
+        testVectors = [
+            datetime.datetime.utcfromtimestamp(0),
+            datetime.datetime.utcfromtimestamp(150000),
+            datetime.datetime.now(),
+            datetime.datetime.utcfromtimestamp(10000000000)
+        ]
+        self.runTestOnType('datetime', testVectors)
 
     def testBinary(self):
         testVectors = [

@@ -23,12 +23,6 @@ class TypeCheckMixin(object):
         # In Python 2.7, -2^31 is treated as long, not int.
         return self.__isType(variable, [int, long])
 
-    def __isShort(self, variable):
-        return self.isInt16(variable)
-
-    def __isLong(self, variable):
-        return self.__isType(variable, [long])
-
     def __isFloat(self, variable):
         # TODO: Figure out Float128, Big Number Types in Python
         return self.__isType(variable, [float])
@@ -36,13 +30,13 @@ class TypeCheckMixin(object):
     def isBool(self, variable):
         return self.__isType(variable, [bool])
 
-    def isInt8(self, variable):
+    def isInt8(self, variable):  # pragma: no cover
         return self.__isInt(variable) and self.__checkRange(variable, -128, 127)
 
     def isUint8(self, variable):
         return self.__isInt(variable) and self.__checkRange(variable, 0, 255)
 
-    def isInt16(self, variable):
+    def isInt16(self, variable):  # pragma: no cover
         # Two's complement allows -32768
         return self.__isInt(variable) and self.__checkRange(variable, -32768, 32767)
 
@@ -56,11 +50,11 @@ class TypeCheckMixin(object):
         return self.__isInt(variable) and self.__checkRange(variable, 0, 4294967295)
 
     def isInt64(self, variable):
-        return (self.__isLong(variable) or self.__isInt(variable)) \
+        return self.__isInt(variable) \
                and self.__checkRange(variable, -9223372036854775808, 9223372036854775807)
 
     def isUint64(self, variable):
-        return (self.__isLong(variable) or self.__isInt(variable)) \
+        return self.__isInt(variable) \
                and self.__checkRange(variable, 0, 18446744073709551615)
 
     def isFloat32(self, variable):
@@ -85,7 +79,7 @@ class TypeCheckMixin(object):
     def isList(self, variable):
         return self.__isType(variable, [list, tuple])
 
-    def isDict(self, variable):
+    def isDict(self, variable):  # pragma: no cover
         return self.__isType(variable, [dict])
 
     def isType(self, variable, variableType):
@@ -117,19 +111,28 @@ class TypeCheckMixin(object):
             return functionToCall(self, variable)
         return False
 
+    def remapTypes(self, type):
+        typesToRemap = {
+            'int': 'int32',
+            'long': 'int64',
+            'float': 'float32',
+            'double': 'float64'
+        }
+        return typesToRemap.get(type, type)
+
 
 class TypeDeriveValueMixin(object):
 
     def getBool(self):
         return False
 
-    def getInt8(self):
+    def getInt8(self):  # pragma: no cover
         return 0
 
     def getUint8(self):
         return 0
 
-    def getInt16(self):
+    def getInt16(self):  # pragma: no cover
         return 0
 
     def getUint16(self):
@@ -165,7 +168,7 @@ class TypeDeriveValueMixin(object):
     def getList(self):
         return []
 
-    def getDict(self):
+    def getDict(self):  # pragma: no cover
         return {}
 
     def getValue(self, variableType):
@@ -194,7 +197,7 @@ class TypeDeriveValueMixin(object):
         if variableType in STRING_TYPES_MAP:
             functionToCall = STRING_TYPES_MAP[variableType]
             return functionToCall(self)
-        return False
+        return None
 
 
 class EntropyUtils(object):
@@ -248,12 +251,13 @@ class RawFloatConvertUtils(object):
         ctypes.memmove(cMemValue, ctypes.byref(cFloatValue), 4)
         if sys.byteorder == "little":
             return bytearray(cMemValue)[::-1]
-        return bytearray(cMemValue)
+        else: # pragma: no cover
+            return bytearray(cMemValue)
 
     def getBytesAsFloat(self, value):
         if sys.byteorder == "little":
             flippedValue = value[::-1]
-        else:
+        else: # pragma: no cover
             flippedValue = value
         cMemValue = (ctypes.c_byte * 4)()
         cMemValue[0] = flippedValue[0]
@@ -271,12 +275,13 @@ class RawFloatConvertUtils(object):
         ctypes.memmove(cMemValue, ctypes.byref(cDoubleValue), 8)
         if sys.byteorder == "little":
             return bytearray(cMemValue)[::-1]
-        return bytearray(cMemValue)
+        else: # pragma: no cover
+            return bytearray(cMemValue)
 
     def getBytesAsDouble(self, value):
         if sys.byteorder == "little":
             flippedValue = value[::-1]
-        else:
+        else: # pragma: no cover
             flippedValue = value
         cMemValue = (ctypes.c_byte * 8)()
         cMemValue[0] = flippedValue[0]
@@ -302,19 +307,7 @@ class UTFUtils(EntropyUtils):
         return byteValue.decode('utf-8')
 
 
-class JsonMixin(TypeCheckMixin):
-
-    def toJson(self):
-        return json.dumps(self, default=str)
-
-    def fromJson(self, jsonStr):
-        loadedValue = json.loads(jsonStr)
-        if self.isDict(loadedValue):
-            for key, value in loadedValue.items():
-                self.__setattr__(key, value)
-
-
-class DictMixIn(dict, JsonMixin):
+class DictMixIn(dict, TypeCheckMixin):
 
     def __init__(self, *args, **kwargs):
         super(dict, self).__init__(*args, **kwargs)
@@ -341,7 +334,7 @@ class DictMixIn(dict, JsonMixin):
     def __setitem__(self, name, value):
         return self.__setattr__(name, value)
 
-    def __delitem__(self, name):
+    def __delitem__(self, name):  # pragma: no cover
         del self.__dict__['__variables'][name]
 
     def __getattr__(self, name):
@@ -349,13 +342,13 @@ class DictMixIn(dict, JsonMixin):
             raise AttributeError('Attribute {} does not exist.'.format(name))
         return self.__dict__['__variables'][name][1]
 
-    def getAttribute(self, name):
+    def getAttribute(self, name):   # pragma: no cover
         return self.__getattr__(name)
 
     def getAttributeWithType(self, name):
         return self.__dict__['__variables'][name]
 
-    def validateKnownAttribute(self, name, variableType, value, variableSubType = None):
+    def validateKnownAttribute(self, name, variableType, value, variableSubType = None):  # pragma: no cover
         return value
 
     def setKnownAttribute(self, name, variableType, value, variableSubType = None):
@@ -363,19 +356,19 @@ class DictMixIn(dict, JsonMixin):
         self.__dict__['__variables'][name] = [variableType, value, variableSubType]
 
     def __setattr__(self, name, value):
-        if not name in self.__dict__['__variables']:
-            variableType = str(type(value).__name__)
-            if self.isList(value) and value:
-                variableSubType = str(type(value[0]).__name__)
-            else:
-                variableSubType = None
-        else:
+        if name in self.__dict__['__variables']:
             variableType = self.__dict__['__variables'][name][0]
             variableSubType = self.__dict__['__variables'][name][2]
+        else:
+            variableType = self.remapTypes(str(type(value).__name__))
+            if value and self.isList(value):
+                variableSubType = self.remapTypes(str(type(value[0]).__name__))
+            else:
+                variableSubType = None
         value = self.validateKnownAttribute(name, variableType, value, variableSubType)
         self.__dict__['__variables'][name] = [variableType, value, variableSubType]
 
-    def setAttribute(self, name, value):
+    def setAttribute(self, name, value):  # pragma: no cover
         return self.__setattr__(name, value)
 
     def toJson(self):

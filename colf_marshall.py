@@ -208,7 +208,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
         timeDelta = value - datetime.datetime.utcfromtimestamp(0)
         nanoSeconds = timeDelta.microseconds * (10**3)
         seconds = timeDelta.seconds + (timeDelta.days * 24 * 3600)
-        if nanoSeconds != 0 and seconds != 0:
+        if nanoSeconds != 0 or seconds != 0:
             if (seconds & self.getComplementaryMaskUnsigned(32)) != 0:
                 # Flat
                 byteOutput[offset] += index | 0x80; offset += 1
@@ -351,7 +351,8 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
         if variableType in STRING_TYPES_MAP:
             functionToCall = STRING_TYPES_MAP[variableType]
             return functionToCall(self, value, index, byteOutput, offset)
-        return offset
+        else:  # pragma: no cover
+            return offset
 
     def marshall(self, byteOutput, offset=0):
         assert (byteOutput != None)
@@ -364,8 +365,6 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
             index += 1
         return offset
 
-    def getAttributeWithType(self, name):
+    def getAttributeWithType(self, name):  # pragma: no cover
         value = self.__getattr__(name)
-        valueType = str(type(value).__name__)
-        valueSubType = None
-        return valueType, value. valueSubType
+        return None, value, None
