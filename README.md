@@ -54,7 +54,7 @@ tox
 
 ## Call for Testing Volunteers
 
-The code was tested on Python 2.7, 3.7, 3.8.
+The code was tested on Python 2.7, 3.6, 3.7, 3.8.
  
 This code has been tested on Little-Endian machines only. It
 requires to be tested on other architectures such as PowerPC, or those
