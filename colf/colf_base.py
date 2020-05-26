@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 import six
 
-if sys.version_info[0:2] >= (3, 7):
+if sys.version_info[0:2] >= (3, 0):
     long = int
 
 class TypeCheckMixin(object):
