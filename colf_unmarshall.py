@@ -7,6 +7,12 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
         offset += 1
         return value, offset
 
+    def unmarshallInt(self, byteInput, offset, length):
+        value = 0
+        for index in range(length):
+            value = (value<<8) | byteInput[offset]; offset+=1
+        return value, offset
+
     def unmarshallVarInt(self, byteInput, offset, limit=-1):
         value = 0
         bitShift = 0
@@ -31,8 +37,6 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
-        indexIsSigned = True if byteInput[offset] & 0x80 else False
-
         offset += 1
         value = True
 
@@ -41,8 +45,6 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
     def unmarshallUint8(self, name, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
-
-        indexIsSigned = True if byteInput[offset] & 0x80 else False
 
         offset += 1
         value = byteInput[offset]; offset += 1
@@ -53,14 +55,13 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
-        indexIsSigned = True if byteInput[offset] & 0x80 else False
+        indexIsCompressed = True if byteInput[offset] & 0x80 else False
 
         offset += 1
 
-        if not indexIsSigned:
+        if not indexIsCompressed:
             # Flat - do not use | 0x80. See https://github.com/pascaldekloe/colfer/issues/61
-            value = byteInput[offset]; offset += 1
-            value = (value << 8) | byteInput[offset]; offset += 1
+            value, offset = self.unmarshallInt(byteInput, offset, 2)
         else:
             # Compressed
             value = byteInput[offset]; offset += 1
@@ -102,9 +103,21 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
         return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallUint32(self, name, index, byteInput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+        if (byteInput[offset] & 0x7f) != index:
+            return None, offset
 
-        return None, offset
+        indexIsFlat = True if byteInput[offset] & 0x80 else False
+
+        offset += 1
+
+        if indexIsFlat:
+            # Flat
+            value, offset = self.unmarshallInt(byteInput, offset, 4)
+        else:
+            # Compressed
+            value, offset = self.unmarshallVarInt(byteInput, offset)
+
+        return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallInt64(self, name, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:
@@ -141,9 +154,21 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
         return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallUint64(self, name, index, byteInput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+        if (byteInput[offset] & 0x7f) != index:
+            return None, offset
 
-        return None, offset
+        indexIsFlat = True if byteInput[offset] & 0x80 else False
+
+        offset += 1
+
+        if indexIsFlat:
+            # Flat
+            value, offset = self.unmarshallInt(byteInput, offset, 8)
+        else:
+            # Compressed
+            value, offset = self.unmarshallVarInt(byteInput, offset)
+
+        return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallFloat32(self, name, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:

@@ -9,6 +9,12 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
         byteOutput[offset] = 0x7f; offset += 1
         return offset
 
+    def marshallInt(self, value, byteOutput, offset, length):
+        for index in range(1, length+1):
+            byteOutput[offset+(length-index)] = value & 0xff
+            value >>= 8
+        return offset+length
+
     def marshallVarInt(self, value, byteOutput, offset, limit=-1):
         if limit > 0:
             while value > 0x7f and limit:
@@ -42,8 +48,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
             if (value & self.getComplementaryMaskUnsigned(8, 16)) != 0:
                 # Flat - do not use | 0x80. See https://github.com/pascaldekloe/colfer/issues/61
                 byteOutput[offset] = index; offset += 1
-                byteOutput[offset] = (value >> 8) & 0xff; offset += 1
-                byteOutput[offset] = value & 0xff; offset += 1
+                offset = self.marshallInt(value, byteOutput, offset, 2)
             else:
                 # Compressed
                 byteOutput[offset] = (index | 0x80); offset += 1
@@ -90,16 +95,11 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
             if (value & self.getComplementaryMaskUnsigned(21, 32)) != 0:
                 # Flat
                 byteOutput[offset] = index | 0x80; offset += 1
-                byteOutput[offset] = (value >> 24) & 0xff; offset += 1
-                byteOutput[offset] = (value >> 16) & 0xff; offset += 1
-                byteOutput[offset] = (value >> 8) & 0xff; offset += 1
-                byteOutput[offset] = value & 0xff; offset += 1
+                offset = self.marshallInt(value, byteOutput, offset, 4)
             else:
                 # Compressed Path - do not use | 0x80
                 byteOutput[offset] = index; offset += 1
                 offset = self.marshallVarInt(value, byteOutput, offset)
-
-            offset += 1
 
         return self.marshallHeader(byteOutput, offset)
 
@@ -141,20 +141,11 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
             if (value & self.getComplementaryMaskUnsigned(49)) != 0:
                 # Flat
                 byteOutput[offset] = index | 0x80; offset += 1
-                byteOutput[offset] = (value >> 56) & 0xff; offset += 1
-                byteOutput[offset] = (value >> 48) & 0xff; offset += 1
-                byteOutput[offset] = (value >> 40) & 0xff; offset += 1
-                byteOutput[offset] = (value >> 32) & 0xff; offset += 1
-                byteOutput[offset] = (value >> 24) & 0xff; offset += 1
-                byteOutput[offset] = (value >> 16) & 0xff; offset += 1
-                byteOutput[offset] = (value >> 8) & 0xff; offset += 1
-                byteOutput[offset] = value & 0xff; offset += 1
+                offset = self.marshallInt(value, byteOutput, offset, 8)
             else:
                 # Compressed Path - do not use | 0x80
                 byteOutput[offset] = index; offset += 1
                 offset = self.marshallVarInt(value, byteOutput, offset)
-
-            offset += 1
 
         return self.marshallHeader(byteOutput, offset)
 
@@ -221,31 +212,13 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
             if (seconds & self.getComplementaryMaskUnsigned(32)) != 0:
                 # Flat
                 byteOutput[offset] += index | 0x80; offset += 1
-                byteOutput[offset] += (seconds >> 56) & 0xff; offset += 1
-                byteOutput[offset] += (seconds >> 48) & 0xff; offset += 1
-                byteOutput[offset] += (seconds >> 40) & 0xff; offset += 1
-                byteOutput[offset] += (seconds >> 32) & 0xff; offset += 1
-                byteOutput[offset] += (seconds >> 24) & 0xff; offset += 1
-                byteOutput[offset] += (seconds >> 16) & 0xff; offset += 1
-                byteOutput[offset] += (seconds >> 8) & 0xff; offset += 1
-                byteOutput[offset] += (seconds) & 0xff; offset += 1
-
-                byteOutput[offset] += (nanoSeconds >> 24) & 0xff; offset += 1
-                byteOutput[offset] += (nanoSeconds >> 16) & 0xff; offset += 1
-                byteOutput[offset] += (nanoSeconds >> 8) & 0xff; offset += 1
-                byteOutput[offset] += (nanoSeconds) & 0xff; offset += 1
+                offset = self.marshallInt(seconds, byteOutput, offset, 8)
+                offset = self.marshallInt(nanoSeconds, byteOutput, offset, 4)
             else:
                 # Compressed Path
                 byteOutput[offset] += index; offset += 1
-                byteOutput[offset] += (seconds >> 24) & 0xff; offset += 1
-                byteOutput[offset] += (seconds >> 16) & 0xff; offset += 1
-                byteOutput[offset] += (seconds >> 8) & 0xff; offset += 1
-                byteOutput[offset] += (seconds) & 0xff; offset += 1
-
-                byteOutput[offset] += (nanoSeconds >> 24) & 0xff; offset += 1
-                byteOutput[offset] += (nanoSeconds >> 16) & 0xff; offset += 1
-                byteOutput[offset] += (nanoSeconds >> 8) & 0xff; offset += 1
-                byteOutput[offset] += (nanoSeconds) & 0xff; offset += 1
+                offset = self.marshallInt(seconds, byteOutput, offset, 4)
+                offset = self.marshallInt(nanoSeconds, byteOutput, offset, 4)
 
         return self.marshallHeader(byteOutput, offset)
 

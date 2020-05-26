@@ -64,6 +64,20 @@ class TestMarshallPrimitives(unittest.TestCase, ExampleMixin):
         ]
         self.runTestOnType('int32', testVectors)
 
+    def testUint32(self):
+        testVectors = [
+            0,
+            35,
+            129,
+            270,
+            768,
+            15000,
+            267891,
+            2678912,
+            4294967295,
+        ]
+        self.runTestOnType('uint32', testVectors)
+
     def testListInt32(self):
         testVectors = [
             [],
@@ -107,6 +121,22 @@ class TestMarshallPrimitives(unittest.TestCase, ExampleMixin):
             [0,-9223372036854775808,9223372036854775807]
         ]
         self.runTestOnType('list', testVectors, 'int64')
+
+    def testUint64(self):
+        testVectors = [
+            0,
+            35,
+            129,
+            270,
+            768,
+            4294967295,
+            922337203685477,
+            9223372036854775,
+            92233720368547758,
+            9223372036854775807,
+            18446744073709551615,
+        ]
+        self.runTestOnType('uint64', testVectors)
 
     def testFloat32(self):
         testVectors = [
