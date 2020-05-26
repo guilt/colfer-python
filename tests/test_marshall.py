@@ -228,13 +228,11 @@ class TestMarshallPrimitives(unittest.TestCase, ExampleMixin):
 
 class TestMarshall(unittest.TestCase, ExampleMixin):
 
-    def testMarshall(self):
+    def testMarshallAndUnMarshall(self):
         byteOutput = bytearray(200)
         marshallableObject = self.getExampleObject()
+        print('Original: {}'.format(marshallableObject))
         length = marshallableObject.marshall(byteOutput)
         print('Marshalled: {}'.format(byteOutput[:length]))
-
-    def testUnMarshall(self):
-        byteInput = bytearray(200)
-        unmarshalledObject, _ = self.getExampleObject().unmarshall(byteInput)
+        unmarshalledObject, _ = self.getExampleObject().unmarshall(byteOutput[:length])
         print('Unmarshalled: {}'.format(unmarshalledObject))

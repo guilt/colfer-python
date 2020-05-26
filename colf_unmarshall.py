@@ -341,8 +341,8 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
         if variableSubType in STRING_TYPES_MAP:
             functionToCall = STRING_TYPES_MAP[variableSubType]
             return functionToCall(self, index, byteInput, offset)
-
-        return None, offset
+        else:  # pragma: no cover
+            return None, offset
 
     def unmarshallType(self, variableType, variableSubType, index, byteInput, offset):
         STRING_TYPES_MAP = {

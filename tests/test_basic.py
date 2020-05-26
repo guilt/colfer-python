@@ -32,7 +32,7 @@ class ExampleMixin(object):
         x.declareAttribute('eS', 'int64')
         x.eS = -1000000000000
 
-        x.declareAttribute('f', 'list', variableSubType='uint64')
+        x.declareAttribute('f', 'list', variableSubType='int64')
         x.f = (2, 3, 4)
         x.f = [2, 3, 4]
         x.fS = (2, 3)
@@ -56,11 +56,8 @@ class ExampleMixin(object):
         x.declareAttribute('m', 'list', variableSubType='str')
         x.m = ('Hello', 'World')
 
-        x.declareAttribute('n', 'list', variableSubType='bool')
-        x.n = (True, False)
-
-        x.declareAttribute('o', 'list', variableSubType='bytes')
-        x.o = (bytearray(b'Foo'), bytearray(b'Bar'))
+        x.declareAttribute('n', 'list', variableSubType='bytes')
+        x.n = (bytearray(b'Foo'), bytearray(b'Bar'))
 
         return x
 

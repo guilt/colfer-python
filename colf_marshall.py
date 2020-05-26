@@ -322,8 +322,8 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
         if variableSubType in STRING_TYPES_MAP:
             functionToCall = STRING_TYPES_MAP[variableSubType]
             return functionToCall(self, value, index, byteOutput, offset)
-
-        return offset
+        else:  # pragma: no cover
+            return offset
 
     def marshallType(self, variableType, variableSubType, value, index, byteOutput, offset):
         STRING_TYPES_MAP = {
