@@ -61,6 +61,8 @@ class ExampleMixin(object):
         x.declareAttribute('o', 'list', variableSubType='bytes')
         x.o = (bytearray(b'Foo'), bytearray(b'Bar'))
 
+        x.declareAttribute('p', 'unknownType')
+
         return x
 
 
@@ -231,5 +233,5 @@ class TestUTFUtils(UTFUtils, unittest.TestCase):
         ]
         for testVector in testVectors:
             valueAsBytes, valueLength = self.encodeUTFBytes(testVector)
-            decodedTestVector = valueAsBytes[:valueLength].decode('utf-8')
+            decodedTestVector = self.decodeUTFBytes(valueAsBytes)
             self.assertEqual(decodedTestVector, testVector)

@@ -27,14 +27,14 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
         byteOutput[offset] = value & 0xff; offset += 1
         return offset
 
-    def marshallBool(self, name, value, index, byteOutput, offset):
+    def marshallBool(self, value, index, byteOutput, offset):
 
         if value:
             byteOutput[offset] = index; offset += 1
 
         return self.marshallHeader(byteOutput, offset)
 
-    def marshallUint8(self, name, value, index, byteOutput, offset):
+    def marshallUint8(self, value, index, byteOutput, offset):
 
         if value != 0:
             byteOutput[offset] = index; offset += 1
@@ -42,7 +42,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
         return self.marshallHeader(byteOutput, offset)
 
-    def marshallUint16(self, name, value, index, byteOutput, offset):
+    def marshallUint16(self, value, index, byteOutput, offset):
         if value != 0:
 
             if (value & self.getComplementaryMaskUnsigned(8, 16)) != 0:
@@ -56,7 +56,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
         return self.marshallHeader(byteOutput, offset)
 
-    def marshallInt32(self, name, value, index, byteOutput, offset):
+    def marshallInt32(self, value, index, byteOutput, offset):
         if value != 0:
 
             if value < 0:
@@ -70,7 +70,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
         return self.marshallHeader(byteOutput, offset)
 
-    def marshallListInt32(self, name, value, index, byteOutput, offset):
+    def marshallListInt32(self, value, index, byteOutput, offset):
         valueLength = len(value)
 
         if valueLength != 0:
@@ -89,7 +89,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
         return self.marshallHeader(byteOutput, offset)
 
-    def marshallUint32(self, name, value, index, byteOutput, offset):
+    def marshallUint32(self, value, index, byteOutput, offset):
 
         if value != 0:
             if (value & self.getComplementaryMaskUnsigned(21, 32)) != 0:
@@ -103,7 +103,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
         return self.marshallHeader(byteOutput, offset)
 
-    def marshallInt64(self, name, value, index, byteOutput, offset):
+    def marshallInt64(self, value, index, byteOutput, offset):
         if value != 0:
 
             if value < 0:
@@ -117,7 +117,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
         return self.marshallHeader(byteOutput, offset)
 
-    def marshallListInt64(self, name, value, index, byteOutput, offset):
+    def marshallListInt64(self, value, index, byteOutput, offset):
         valueLength = len(value)
 
         if valueLength != 0:
@@ -136,7 +136,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
         return self.marshallHeader(byteOutput, offset)
 
-    def marshallUint64(self, name, value, index, byteOutput, offset):
+    def marshallUint64(self, value, index, byteOutput, offset):
         if value != 0:
             if (value & self.getComplementaryMaskUnsigned(49)) != 0:
                 # Flat
@@ -149,7 +149,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
         return self.marshallHeader(byteOutput, offset)
 
-    def marshallFloat32(self, name, value, index, byteOutput, offset):
+    def marshallFloat32(self, value, index, byteOutput, offset):
         if value != 0:
             # Flat
             byteOutput[offset] = index; offset += 1
@@ -158,7 +158,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
                 byteOutput[offset] = valueAsByte; offset += 1
         return self.marshallHeader(byteOutput, offset)
 
-    def marshallListFloat32(self, name, value, index, byteOutput, offset):
+    def marshallListFloat32(self, value, index, byteOutput, offset):
         valueLength = len(value)
 
         if valueLength != 0:
@@ -176,7 +176,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
         return self.marshallHeader(byteOutput, offset)
 
-    def marshallFloat64(self, name, value, index, byteOutput, offset):
+    def marshallFloat64(self, value, index, byteOutput, offset):
         if value != 0:
             # Flat
             byteOutput[offset] = index; offset += 1
@@ -186,7 +186,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
         return self.marshallHeader(byteOutput, offset)
 
-    def marshallListFloat64(self, name, value, index, byteOutput, offset):
+    def marshallListFloat64(self, value, index, byteOutput, offset):
         valueLength = len(value)
 
         if valueLength != 0:
@@ -204,7 +204,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
         return self.marshallHeader(byteOutput, offset)
 
-    def marshallTimestamp(self, name, value, index, byteOutput, offset):
+    def marshallTimestamp(self, value, index, byteOutput, offset):
         timeDelta = value - datetime.datetime.utcfromtimestamp(0)
         nanoSeconds = timeDelta.microseconds * (10**3)
         seconds = timeDelta.seconds + (timeDelta.days * 24 * 3600)
@@ -222,7 +222,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
         return self.marshallHeader(byteOutput, offset)
 
-    def marshallBinary(self, name, value, index, byteOutput, offset):
+    def marshallBinary(self, value, index, byteOutput, offset):
         valueLength = len(value)
         if valueLength != 0:
             assert(valueLength <= ColferConstants.COLFER_MAX_SIZE)
@@ -237,7 +237,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
         return self.marshallHeader(byteOutput, offset)
 
-    def marshallListBinary(self, name, value, index, byteOutput, offset):
+    def marshallListBinary(self, value, index, byteOutput, offset):
         valueLength = len(value)
         if valueLength != 0:
             assert(valueLength <= ColferConstants.COLFER_LIST_MAX)
@@ -260,7 +260,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
         return self.marshallHeader(byteOutput, offset)
 
-    def marshallString(self, name, value, index, byteOutput, offset):
+    def marshallString(self, value, index, byteOutput, offset):
         valueLength = len(value)
         if valueLength != 0:
             assert(valueLength <= ColferConstants.COLFER_MAX_SIZE)
@@ -279,7 +279,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
         return self.marshallHeader(byteOutput, offset)
 
-    def marshallListString(self, name, value, index, byteOutput, offset):
+    def marshallListString(self, value, index, byteOutput, offset):
         valueLength = len(value)
 
         if valueLength != 0:
@@ -307,7 +307,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
         return self.marshallHeader(byteOutput, offset)
 
-    def marshallList(self, name, value, index, byteOutput, offset, variableSubType=None):
+    def marshallList(self, value, index, byteOutput, offset, variableSubType=None):
         STRING_TYPES_MAP = {
             'int32': ColferMarshallerMixin.marshallListInt32,
             'int64': ColferMarshallerMixin.marshallListInt64,
@@ -321,11 +321,11 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
         if variableSubType in STRING_TYPES_MAP:
             functionToCall = STRING_TYPES_MAP[variableSubType]
-            return functionToCall(self, name, value, index, byteOutput, offset)
+            return functionToCall(self, value, index, byteOutput, offset)
 
         return offset
 
-    def marshallType(self, name, variableType, variableSubType, value, index, byteOutput, offset):
+    def marshallType(self, variableType, variableSubType, value, index, byteOutput, offset):
         STRING_TYPES_MAP = {
             'bool': ColferMarshallerMixin.marshallBool,
             'uint8': ColferMarshallerMixin.marshallUint8,
@@ -347,10 +347,10 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
         }
         if variableSubType:
             functionToCall = STRING_TYPES_MAP[variableType]
-            return functionToCall(self, name, value, index, byteOutput, offset, variableSubType)
+            return functionToCall(self, value, index, byteOutput, offset, variableSubType)
         if variableType in STRING_TYPES_MAP:
             functionToCall = STRING_TYPES_MAP[variableType]
-            return functionToCall(self, name, value, index, byteOutput, offset)
+            return functionToCall(self, value, index, byteOutput, offset)
         return offset
 
     def marshall(self, byteOutput, offset=0):
@@ -360,7 +360,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
         index = 0
         for name in dir(self):
             variableType, value, variableSubType = self.getAttributeWithType(name)
-            offset = self.marshallType(name, variableType, variableSubType, value, index, byteOutput, offset)
+            offset = self.marshallType(variableType, variableSubType, value, index, byteOutput, offset)
             index += 1
         return offset
 

@@ -33,7 +33,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         return value, offset
 
-    def unmarshallBool(self, name, index, byteInput, offset):
+    def unmarshallBool(self, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
@@ -42,7 +42,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         return self.unmarshallHeader(value, byteInput, offset)
 
-    def unmarshallUint8(self, name, index, byteInput, offset):
+    def unmarshallUint8(self, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
@@ -51,7 +51,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         return self.unmarshallHeader(value, byteInput, offset)
 
-    def unmarshallUint16(self, name, index, byteInput, offset):
+    def unmarshallUint16(self, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
@@ -68,7 +68,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         return self.unmarshallHeader(value, byteInput, offset)
 
-    def unmarshallInt32(self, name, index, byteInput, offset):
+    def unmarshallInt32(self, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
@@ -82,7 +82,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         return self.unmarshallHeader(value, byteInput, offset)
 
-    def unmarshallListInt32(self, name, index, byteInput, offset):
+    def unmarshallListInt32(self, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
@@ -102,7 +102,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         return self.unmarshallHeader(value, byteInput, offset)
 
-    def unmarshallUint32(self, name, index, byteInput, offset):
+    def unmarshallUint32(self, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
@@ -119,7 +119,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         return self.unmarshallHeader(value, byteInput, offset)
 
-    def unmarshallInt64(self, name, index, byteInput, offset):
+    def unmarshallInt64(self, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
@@ -133,7 +133,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         return self.unmarshallHeader(value, byteInput, offset)
 
-    def unmarshallListInt64(self, name, index, byteInput, offset):
+    def unmarshallListInt64(self, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
@@ -153,7 +153,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         return self.unmarshallHeader(value, byteInput, offset)
 
-    def unmarshallUint64(self, name, index, byteInput, offset):
+    def unmarshallUint64(self, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
@@ -170,7 +170,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         return self.unmarshallHeader(value, byteInput, offset)
 
-    def unmarshallFloat32(self, name, index, byteInput, offset):
+    def unmarshallFloat32(self, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
@@ -185,7 +185,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         return self.unmarshallHeader(value, byteInput, offset)
 
-    def unmarshallListFloat32(self, name, index, byteInput, offset):
+    def unmarshallListFloat32(self, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
@@ -205,7 +205,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         return self.unmarshallHeader(value, byteInput, offset)
 
-    def unmarshallFloat64(self, name, index, byteInput, offset):
+    def unmarshallFloat64(self, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
@@ -220,7 +220,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         return self.unmarshallHeader(value, byteInput, offset)
 
-    def unmarshallListFloat64(self, name, index, byteInput, offset):
+    def unmarshallListFloat64(self, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
@@ -240,22 +240,12 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         return self.unmarshallHeader(value, byteInput, offset)
 
-    def unmarshallTimestamp(self, name, index, byteInput, offset):
+    def unmarshallTimestamp(self, index, byteInput, offset):
         raise NotImplementedError("Unimplemented Type.")
 
         return None, offset
 
-    def unmarshallBinary(self, name, index, byteInput, offset):
-        raise NotImplementedError("Unimplemented Type.")
-
-        return None, offset
-
-    def unmarshallListBinary(self, name, index, byteInput, offset):
-        raise NotImplementedError("Unimplemented Type.")
-
-        return None, offset
-
-    def unmarshallString(self, name, index, byteInput, offset):
+    def unmarshallBinary(self, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
@@ -264,13 +254,11 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
         # Compressed Path
         valueLength, offset = self.unmarshallVarInt(byteInput, offset)
         # Flat
-        valueAsBytes = byteInput[offset:offset+valueLength]
-        value = self.decodeUTFBytes(valueAsBytes)
-        offset += valueLength
+        value = byteInput[offset:offset+valueLength]; offset += valueLength
 
         return self.unmarshallHeader(value, byteInput, offset)
 
-    def unmarshallListString(self, name, index, byteInput, offset):
+    def unmarshallListBinary(self, index, byteInput, offset):
         if (byteInput[offset] & 0x7f) != index:
             return None, offset
 
@@ -285,12 +273,46 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
             # Compressed Path
             valueLength, offset = self.unmarshallVarInt(byteInput, offset)
             # Flat
-            value.append(self.decodeUTFBytes(byteInput[offset:offset + valueLength]))
-            offset += valueLength
+            valueAsBytes = byteInput[offset:offset + valueLength]; offset += valueLength
+            value.append(valueAsBytes)
 
         return self.unmarshallHeader(value, byteInput, offset)
 
-    def unmarshallList(self, name, index, byteInput, offset, variableSubType=None):
+    def unmarshallString(self, index, byteInput, offset):
+        if (byteInput[offset] & 0x7f) != index:
+            return None, offset
+
+        offset += 1
+
+        # Compressed Path
+        valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+        # Flat
+        valueAsBytes = byteInput[offset:offset+valueLength]; offset += valueLength
+        value = self.decodeUTFBytes(valueAsBytes)
+
+        return self.unmarshallHeader(value, byteInput, offset)
+
+    def unmarshallListString(self, index, byteInput, offset):
+        if (byteInput[offset] & 0x7f) != index:
+            return None, offset
+
+        offset += 1
+
+        # Compressed Path
+        valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+
+        value = []
+        # Flat
+        for _ in range(valueLength):
+            # Compressed Path
+            valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+            # Flat
+            valueAsBytes = byteInput[offset:offset + valueLength]; offset += valueLength
+            value.append(self.decodeUTFBytes(valueAsBytes))
+
+        return self.unmarshallHeader(value, byteInput, offset)
+
+    def unmarshallList(self, index, byteInput, offset, variableSubType=None):
         STRING_TYPES_MAP = {
             'int32': ColferUnmarshallerMixin.unmarshallListInt32,
             'int64': ColferUnmarshallerMixin.unmarshallListInt64,
@@ -304,11 +326,11 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         if variableSubType in STRING_TYPES_MAP:
             functionToCall = STRING_TYPES_MAP[variableSubType]
-            return functionToCall(self, name, index, byteInput, offset)
+            return functionToCall(self, index, byteInput, offset)
 
         return None, offset
 
-    def unmarshallType(self, name, variableType, variableSubType, index, byteInput, offset):
+    def unmarshallType(self, variableType, variableSubType, index, byteInput, offset):
         STRING_TYPES_MAP = {
             'bool': ColferUnmarshallerMixin.unmarshallBool,
             'uint8': ColferUnmarshallerMixin.unmarshallUint8,
@@ -329,10 +351,10 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
         }
         if variableSubType:
             functionToCall = STRING_TYPES_MAP[variableType]
-            return functionToCall(self, name, index, byteInput, offset, variableSubType)
+            return functionToCall(self, index, byteInput, offset, variableSubType)
         if variableType in STRING_TYPES_MAP:
             functionToCall = STRING_TYPES_MAP[variableType]
-            return functionToCall(self, name, index, byteInput, offset)
+            return functionToCall(self, index, byteInput, offset)
         return None, offset
 
     def unmarshall(self, byteInput, offset=0):
@@ -343,7 +365,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
         for name in dir(self):
             variableType, _, variableSubType = self.getAttributeWithType(name)
             try:
-                newValue, offset = self.unmarshallType(name, variableType, variableSubType, index, byteInput, offset)
+                newValue, offset = self.unmarshallType(variableType, variableSubType, index, byteInput, offset)
                 self.setKnownAttribute(name, variableType, newValue, variableSubType)
             except NotImplementedError:
                 pass

@@ -25,14 +25,12 @@ class TestMarshallPrimitives(unittest.TestCase, ExampleMixin):
             self.assertEqual(vector, unmarshalledObject['v'])
             print('')
 
-
     def testBool(self):
         testVectors = [
             False,
             True
         ]
         self.runTestOnType('bool', testVectors)
-
 
     def testUint8(self):
         testVectors = [
@@ -41,7 +39,6 @@ class TestMarshallPrimitives(unittest.TestCase, ExampleMixin):
             255
         ]
         self.runTestOnType('uint8', testVectors)
-
 
     def testUint16(self):
         testVectors = [
@@ -180,6 +177,23 @@ class TestMarshallPrimitives(unittest.TestCase, ExampleMixin):
             [0.0, 0.5, -0.5, 9.800000190734863, -2.0, 0.01171875]
         ]
         self.runTestOnType('list', testVectors,'float64')
+
+    def testBinary(self):
+        testVectors = [
+            b'',
+            b'abc',
+            b'zoozoo',
+        ]
+        self.runTestOnType('bytes', testVectors)
+
+    def testListBinary(self):
+        testVectors = [
+            [],
+            [b''],
+            [b'', b'0'],
+            [b'xyz', b'zoozoo'],
+        ]
+        self.runTestOnType('list', testVectors, 'bytes')
 
     def testString(self):
         testVectors = [
