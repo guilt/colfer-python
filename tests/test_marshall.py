@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 
 from colf import Colfer
@@ -179,6 +180,26 @@ class TestMarshallPrimitives(unittest.TestCase, ExampleMixin):
             [0.0, 0.5, -0.5, 9.800000190734863, -2.0, 0.01171875]
         ]
         self.runTestOnType('list', testVectors,'float64')
+
+    def testString(self):
+        testVectors = [
+            '',
+            '0',
+            '0000',
+            u"한",
+            u"😘🤩"
+        ]
+        self.runTestOnType('str', testVectors)
+
+    def testListString(self):
+        testVectors = [
+            [],
+            [''],
+            ['0',u"한"],
+            ['0000','100'],
+            [u"한",u"😘🤩"]
+        ]
+        self.runTestOnType('list', testVectors, 'str')
 
 
 class TestMarshall(unittest.TestCase, ExampleMixin):

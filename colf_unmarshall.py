@@ -256,14 +256,39 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
         return None, offset
 
     def unmarshallString(self, name, index, byteInput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+        if (byteInput[offset] & 0x7f) != index:
+            return None, offset
 
-        return None, offset
+        offset += 1
+
+        # Compressed Path
+        valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+        # Flat
+        valueAsBytes = byteInput[offset:offset+valueLength]
+        value = self.decodeUTFBytes(valueAsBytes)
+        offset += valueLength
+
+        return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallListString(self, name, index, byteInput, offset):
-        raise NotImplementedError("Unimplemented Type.")
+        if (byteInput[offset] & 0x7f) != index:
+            return None, offset
 
-        return None, offset
+        offset += 1
+
+        # Compressed Path
+        valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+
+        value = []
+        # Flat
+        for _ in range(valueLength):
+            # Compressed Path
+            valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+            # Flat
+            value.append(self.decodeUTFBytes(byteInput[offset:offset + valueLength]))
+            offset += valueLength
+
+        return self.unmarshallHeader(value, byteInput, offset)
 
     def unmarshallList(self, name, index, byteInput, offset, variableSubType=None):
         STRING_TYPES_MAP = {

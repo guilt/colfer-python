@@ -274,9 +274,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
             offset = self.marshallVarInt(valueLength, byteOutput, offset)
 
             # Flat
-            index = 0
-            while index < valueLength:
-                valueAsByte = valueAsBytes[index]; index += 1
+            for valueAsByte in valueAsBytes:
                 byteOutput[offset] = valueAsByte; offset += 1
 
         return self.marshallHeader(byteOutput, offset)
@@ -292,7 +290,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
             # Compressed Path
             offset = self.marshallVarInt(valueLength, byteOutput, offset)
 
-            #Flat
+            # Flat
             for valueAsString in value:
                 valueLength = len(valueAsString)
                 assert (valueLength <= ColferConstants.COLFER_MAX_SIZE)
@@ -304,9 +302,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
                 offset = self.marshallVarInt(valueLength, byteOutput, offset)
 
                 # Flat
-                index = 0
-                while index < valueLength:
-                    valueAsByte = valueAsBytes[index]; index += 1
+                for valueAsByte in valueAsBytes:
                     byteOutput[offset] = valueAsByte; offset += 1
 
         return self.marshallHeader(byteOutput, offset)

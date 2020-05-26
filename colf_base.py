@@ -298,6 +298,9 @@ class UTFUtils(EntropyUtils):
         stringAsBytes = stringValue.encode('utf-8')
         return stringAsBytes, len(stringAsBytes)
 
+    def decodeUTFBytes(self, byteValue):
+        return byteValue.decode('utf-8')
+
 
 class JsonMixin(TypeCheckMixin):
 
