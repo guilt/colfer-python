@@ -50,7 +50,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
                 byteOutput[offset] = index; offset += 1
                 offset = self.marshallInt(value, byteOutput, offset, 2)
             else:
-                # Compressed
+                # Compressed Path
                 byteOutput[offset] = (index | 0x80); offset += 1
                 byteOutput[offset] = value & 0xff; offset += 1
 
@@ -74,7 +74,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
         valueLength = len(value)
 
         if valueLength != 0:
-            assert (valueLength < ColferConstants.COLFER_LIST_MAX)
+            assert (valueLength <= ColferConstants.COLFER_LIST_MAX)
 
             byteOutput[offset] = index; offset += 1
 
@@ -97,7 +97,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
                 byteOutput[offset] = index | 0x80; offset += 1
                 offset = self.marshallInt(value, byteOutput, offset, 4)
             else:
-                # Compressed Path - do not use | 0x80
+                # Compressed Path
                 byteOutput[offset] = index; offset += 1
                 offset = self.marshallVarInt(value, byteOutput, offset)
 
@@ -121,7 +121,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
         valueLength = len(value)
 
         if valueLength != 0:
-            assert (valueLength < ColferConstants.COLFER_LIST_MAX)
+            assert (valueLength <= ColferConstants.COLFER_LIST_MAX)
 
             byteOutput[offset] = index; offset += 1
 
@@ -143,7 +143,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
                 byteOutput[offset] = index | 0x80; offset += 1
                 offset = self.marshallInt(value, byteOutput, offset, 8)
             else:
-                # Compressed Path - do not use | 0x80
+                # Compressed Path
                 byteOutput[offset] = index; offset += 1
                 offset = self.marshallVarInt(value, byteOutput, offset)
 
@@ -151,9 +151,10 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
     def marshallFloat32(self, value, index, byteOutput, offset):
         if value != 0:
-            # Flat
             byteOutput[offset] = index; offset += 1
+            # Convert
             valueAsBytes = self.getFloatAsBytes(value)
+            # Flat
             for valueAsByte in valueAsBytes:
                 byteOutput[offset] = valueAsByte; offset += 1
         return self.marshallHeader(byteOutput, offset)
@@ -162,7 +163,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
         valueLength = len(value)
 
         if valueLength != 0:
-            assert (valueLength < ColferConstants.COLFER_LIST_MAX)
+            assert (valueLength <= ColferConstants.COLFER_LIST_MAX)
 
             byteOutput[offset] = index; offset += 1
 
@@ -170,7 +171,9 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
             offset = self.marshallVarInt(valueLength, byteOutput, offset)
 
             for valueElement in value:
+                # Convert
                 valueAsBytes = self.getFloatAsBytes(valueElement)
+                # Flat
                 for valueAsByte in valueAsBytes:
                     byteOutput[offset] = valueAsByte; offset += 1
 
@@ -178,9 +181,10 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
     def marshallFloat64(self, value, index, byteOutput, offset):
         if value != 0:
-            # Flat
             byteOutput[offset] = index; offset += 1
+            # Convert
             valueAsBytes = self.getDoubleAsBytes(value)
+            # Flat
             for valueAsByte in valueAsBytes:
                 byteOutput[offset] = valueAsByte; offset += 1
 
@@ -190,7 +194,7 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
         valueLength = len(value)
 
         if valueLength != 0:
-            assert (valueLength < ColferConstants.COLFER_LIST_MAX)
+            assert (valueLength <= ColferConstants.COLFER_LIST_MAX)
 
             byteOutput[offset] = index; offset += 1
 
@@ -198,7 +202,9 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
             offset = self.marshallVarInt(valueLength, byteOutput, offset)
 
             for valueElement in value:
+                # Convert
                 valueAsBytes = self.getDoubleAsBytes(valueElement)
+                # Flat
                 for valueAsByte in valueAsBytes:
                     byteOutput[offset] = valueAsByte; offset += 1
 

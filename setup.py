@@ -3,7 +3,7 @@ colf: A strong typed version of Colfer serialization/deserialization for Python.
 """
 from setuptools import setup, find_packages
 
-VERSION = '0.6'
+VERSION = '0.6.1'
 
 def get_requirements():
     with open('requirements.txt') as requirements:

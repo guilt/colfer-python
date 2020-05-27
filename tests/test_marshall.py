@@ -227,8 +227,6 @@ class TestMarshallPrimitives(unittest.TestCase, ExampleMixin):
 
     def testObject(self):
         innerObject = Colfer()
-        innerObject.declareAttribute('a', 'bool')
-        innerObject.a = True
         testVectors = [
             None,
             innerObject
@@ -238,8 +236,6 @@ class TestMarshallPrimitives(unittest.TestCase, ExampleMixin):
 
     def testListObject(self):
         innerObject = Colfer()
-        innerObject.a = True
-        innerObject.b = 2
         testVectors = [
             [],
             [innerObject]

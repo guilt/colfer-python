@@ -61,8 +61,6 @@ class ExampleMixin(object):
 
         x.declareAttribute('o', 'object')
         x.o = Colfer()
-        x.o.declareAttribute('a', 'bool')
-        x.o.a = True
 
         return x
 

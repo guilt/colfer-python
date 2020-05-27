@@ -6,6 +6,7 @@ from .colf_base import TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeUtils,
 class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeUtils, UTFUtils, ColferConstants):
 
     def unmarshallHeader(self, value, byteInput, offset):
+        assert(byteInput[offset] == 0x7f)
         offset += 1
         return value, offset
 
@@ -65,7 +66,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
             # Flat - do not use | 0x80. See https://github.com/pascaldekloe/colfer/issues/61
             value, offset = self.unmarshallInt(byteInput, offset, 2)
         else:
-            # Compressed
+            # Compressed Path
             value = byteInput[offset]; offset += 1
 
         return self.unmarshallHeader(value, byteInput, offset)
@@ -92,6 +93,8 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         # Compressed Path
         valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+        assert (valueLength <= ColferConstants.COLFER_LIST_MAX)
+
         value = []
 
         for _ in range(valueLength):
@@ -143,6 +146,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         # Compressed Path
         valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+        assert (valueLength <= ColferConstants.COLFER_LIST_MAX)
         value = []
 
         for _ in range(valueLength):
@@ -193,6 +197,8 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         # Compressed Path
         valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+        assert (valueLength <= ColferConstants.COLFER_LIST_MAX)
+
         value = []
 
         for _ in range(valueLength):
@@ -226,6 +232,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         # Compressed Path
         valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+        assert (valueLength <= ColferConstants.COLFER_LIST_MAX)
         value = []
 
         for _ in range(valueLength):
@@ -267,6 +274,8 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         # Compressed Path
         valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+        assert (valueLength <= ColferConstants.COLFER_MAX_SIZE)
+
         # Flat
         value = byteInput[offset:offset+valueLength]; offset += valueLength
 
@@ -280,12 +289,14 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         # Compressed Path
         valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+        assert (valueLength <= ColferConstants.COLFER_LIST_MAX)
 
         value = []
         # Flat
         for _ in range(valueLength):
             # Compressed Path
             valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+            assert (valueLength <= ColferConstants.COLFER_MAX_SIZE)
             # Flat
             valueAsBytes = byteInput[offset:offset + valueLength]; offset += valueLength
             value.append(valueAsBytes)
@@ -300,6 +311,8 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         # Compressed Path
         valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+        assert (valueLength <= ColferConstants.COLFER_MAX_SIZE)
+
         # Flat
         valueAsBytes = byteInput[offset:offset+valueLength]; offset += valueLength
         value = self.decodeUTFBytes(valueAsBytes)
@@ -314,12 +327,14 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         # Compressed Path
         valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+        assert (valueLength <= ColferConstants.COLFER_LIST_MAX)
 
         value = []
         # Flat
         for _ in range(valueLength):
             # Compressed Path
             valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+            assert (valueLength <= ColferConstants.COLFER_MAX_SIZE)
             # Flat
             valueAsBytes = byteInput[offset:offset + valueLength]; offset += valueLength
             value.append(self.decodeUTFBytes(valueAsBytes))
@@ -345,6 +360,7 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         # Compressed Path
         valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+        assert (valueLength <= ColferConstants.COLFER_LIST_MAX)
 
         value = []
         # Flat
