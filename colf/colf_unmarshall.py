@@ -326,16 +326,46 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
 
         return self.unmarshallHeader(value, byteInput, offset)
 
+    def unmarshallObject(self, index, byteInput, offset):
+        if (byteInput[offset] & 0x7f) != index:
+            return None, offset
+
+        offset += 1
+
+        # Flat
+        value, offset = type(self)().unmarshall(byteInput, offset)
+
+        return self.unmarshallHeader(value, byteInput, offset)
+
+    def unmarshallListObject(self, index, byteInput, offset):
+        if (byteInput[offset] & 0x7f) != index:
+            return None, offset
+
+        offset += 1
+
+        # Compressed Path
+        valueLength, offset = self.unmarshallVarInt(byteInput, offset)
+
+        value = []
+        # Flat
+        for _ in range(valueLength):
+            # Flat
+            valueAsObject, offset = type(self)().unmarshall(byteInput, offset)
+            value.append(valueAsObject)
+
+        return self.unmarshallHeader(value, byteInput, offset)
+
     def unmarshallList(self, index, byteInput, offset, variableSubType=None):
         STRING_TYPES_MAP = {
             'int32': ColferUnmarshallerMixin.unmarshallListInt32,
             'int64': ColferUnmarshallerMixin.unmarshallListInt64,
             'float32': ColferUnmarshallerMixin.unmarshallListFloat32,
             'float64': ColferUnmarshallerMixin.unmarshallListFloat64,
-            'bytes': ColferUnmarshallerMixin.unmarshallListBinary,
             'bytearray': ColferUnmarshallerMixin.unmarshallListBinary,
+            'bytes': ColferUnmarshallerMixin.unmarshallListBinary,
             'str': ColferUnmarshallerMixin.unmarshallListString,
             'unicode': ColferUnmarshallerMixin.unmarshallListString,
+            'object': ColferUnmarshallerMixin.unmarshallListObject,
         }
 
         if variableSubType in STRING_TYPES_MAP:
@@ -356,10 +386,11 @@ class ColferUnmarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncod
             'float32': ColferUnmarshallerMixin.unmarshallFloat32,
             'float64': ColferUnmarshallerMixin.unmarshallFloat64,
             'datetime': ColferUnmarshallerMixin.unmarshallTimestamp,
+            'bytearray': ColferUnmarshallerMixin.unmarshallBinary,
+            'bytes': ColferUnmarshallerMixin.unmarshallBinary,
             'str': ColferUnmarshallerMixin.unmarshallString,
             'unicode': ColferUnmarshallerMixin.unmarshallString,
-            'bytes': ColferUnmarshallerMixin.unmarshallBinary,
-            'bytearray': ColferUnmarshallerMixin.unmarshallBinary,
+            'object': ColferUnmarshallerMixin.unmarshallObject,
             'list': ColferUnmarshallerMixin.unmarshallList,
             'tuple': ColferUnmarshallerMixin.unmarshallList,
         }

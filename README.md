@@ -21,28 +21,33 @@ class TestType(Colfer):
         super(Colfer, self).__init__()
         self.declareAttribute('radius', 'float64')
         self.declareAttribute('test', 'bool')
+        self.declareAttribute('inner', 'object')
 
     def marshall(self, byteOutput, offset=0):
         offset = self.marshallFloat64(self.radius, 0, byteOutput, offset)
         offset = self.marshallBool(self.test, 1, byteOutput, offset)
+        offset = self.marshallObject(self.inner, 2, byteOutput, offset)
         return offset
 
     def unmarshall(self, byteInput, offset=0):
         self.radius, offset = self.unmarshallFloat64(0, byteInput, offset)
         self.test, offset = self.unmarshallBool(1, byteInput, offset)
+        self.inner, offset = self.unmarshallObject(2, byteInput, offset)
         return self, offset
 
 # Write to Somewhere
 exampleObject = TestType()
 exampleObject.radius = 2.5
 exampleObject.test = True
-byteOutput = bytearray(24)
+exampleObject.inner = TestType()
+exampleObject.inner.radius = 3.0
+byteOutput = bytearray(30)
 length = exampleObject.marshall(byteOutput)
 print(byteOutput[:length])
 
 # Read from Somewhere
 deserializedObject, _ = TestType().unmarshall(byteOutput[:length])
-print(deserializedObject)
+print(deserializedObject, deserializedObject.inner)
 ```
 
 ## Running Unit Tests

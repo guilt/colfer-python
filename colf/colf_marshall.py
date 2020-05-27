@@ -307,16 +307,46 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
 
         return self.marshallHeader(byteOutput, offset)
 
+
+    def marshallObject(self, value, index, byteOutput, offset):
+        if value != None:
+            byteOutput[offset] = index; offset += 1
+
+            # Flat
+            offset = value.marshall(byteOutput, offset)
+
+        return self.marshallHeader(byteOutput, offset)
+
+
+    def marshallListObject(self, value, index, byteOutput, offset):
+        valueLength = len(value)
+
+        if valueLength != 0:
+            assert(valueLength <= ColferConstants.COLFER_LIST_MAX)
+
+            byteOutput[offset] = index; offset += 1
+
+            # Compressed Path
+            offset = self.marshallVarInt(valueLength, byteOutput, offset)
+
+            # Flat
+            for valueAsObject in value:
+                # Flat
+                offset = valueAsObject.marshall(byteOutput, offset)
+
+        return self.marshallHeader(byteOutput, offset)
+
     def marshallList(self, value, index, byteOutput, offset, variableSubType=None):
         STRING_TYPES_MAP = {
             'int32': ColferMarshallerMixin.marshallListInt32,
             'int64': ColferMarshallerMixin.marshallListInt64,
             'float32': ColferMarshallerMixin.marshallListFloat32,
             'float64': ColferMarshallerMixin.marshallListFloat64,
-            'bytes': ColferMarshallerMixin.marshallListBinary,
             'bytearray': ColferMarshallerMixin.marshallListBinary,
+            'bytes': ColferMarshallerMixin.marshallListBinary,
             'str': ColferMarshallerMixin.marshallListString,
             'unicode': ColferMarshallerMixin.marshallListString,
+            'object': ColferMarshallerMixin.marshallListObject,
         }
 
         if variableSubType in STRING_TYPES_MAP:
@@ -338,10 +368,11 @@ class ColferMarshallerMixin(TypeCheckMixin, RawFloatConvertUtils, IntegerEncodeU
             'float64': ColferMarshallerMixin.marshallFloat64,
             'timestamp': ColferMarshallerMixin.marshallTimestamp,
             'datetime': ColferMarshallerMixin.marshallTimestamp,
+            'bytearray': ColferMarshallerMixin.marshallBinary,
+            'bytes': ColferMarshallerMixin.marshallBinary,
             'str': ColferMarshallerMixin.marshallString,
             'unicode': ColferMarshallerMixin.marshallString,
-            'bytes': ColferMarshallerMixin.marshallBinary,
-            'bytearray': ColferMarshallerMixin.marshallBinary,
+            'object': ColferMarshallerMixin.marshallObject,
             'list': ColferMarshallerMixin.marshallList,
             'tuple': ColferMarshallerMixin.marshallList,
         }

@@ -82,6 +82,9 @@ class TypeCheckMixin(object):
     def isDict(self, variable):  # pragma: no cover
         return self.__isType(variable, [dict])
 
+    def isObject(self, variable):  # pragma: no cover
+        return isinstance(variable, object)
+
     def isType(self, variable, variableType):
         STRING_TYPES_MAP = {
             'bool': TypeCheckMixin.isBool,
@@ -95,13 +98,12 @@ class TypeCheckMixin(object):
             'uint64': TypeCheckMixin.isUint64,
             'float32': TypeCheckMixin.isFloat32,
             'float64': TypeCheckMixin.isFloat64,
-            'timestamp': TypeCheckMixin.isTimestamp,
             'datetime': TypeCheckMixin.isTimestamp,
-            'str': TypeCheckMixin.isString,
-            'text': TypeCheckMixin.isString,
-            'unicode': TypeCheckMixin.isString,
-            'bytes': TypeCheckMixin.isBinary,
             'bytearray': TypeCheckMixin.isBinary,
+            'bytes': TypeCheckMixin.isBinary,
+            'str': TypeCheckMixin.isString,
+            'unicode': TypeCheckMixin.isString,
+            'object': TypeCheckMixin.isObject,
             'list': TypeCheckMixin.isList,
             'tuple': TypeCheckMixin.isList,
             'dict': TypeCheckMixin.isDict,
@@ -116,7 +118,10 @@ class TypeCheckMixin(object):
             'int': 'int32',
             'long': 'int64',
             'float': 'float32',
-            'double': 'float64'
+            'double': 'float64',
+            'binary': 'bytearray',
+            'text': 'str',
+            'timestamp': 'datetime',
         }
         return typesToRemap.get(type, type)
 
@@ -171,6 +176,9 @@ class TypeDeriveValueMixin(object):
     def getDict(self):  # pragma: no cover
         return {}
 
+    def getObject(self):
+        return None
+
     def getValue(self, variableType):
         STRING_TYPES_MAP = {
             'bool': TypeDeriveValueMixin.getBool,
@@ -188,8 +196,9 @@ class TypeDeriveValueMixin(object):
             'datetime': TypeDeriveValueMixin.getTimestamp,
             'str': TypeDeriveValueMixin.getString,
             'unicode': TypeDeriveValueMixin.getString,
-            'bytes': TypeDeriveValueMixin.getBinary,
             'bytearray': TypeDeriveValueMixin.getBinary,
+            'bytes': TypeDeriveValueMixin.getBinary,
+            'object': TypeDeriveValueMixin.getObject,
             'list': TypeDeriveValueMixin.getList,
             'tuple': TypeDeriveValueMixin.getList,
             'dict': TypeDeriveValueMixin.getDict,
@@ -372,7 +381,7 @@ class DictMixIn(dict, TypeCheckMixin):
         return self.__setattr__(name, value)
 
     def toJson(self):
-        return json.dumps(dict(self.items()), default=str)
+        return json.dumps(dict(self.items()), default=repr)
 
 
 class ColferConstants(object):
